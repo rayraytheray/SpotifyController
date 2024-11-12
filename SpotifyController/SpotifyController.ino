@@ -3,7 +3,6 @@
   https://docs.arduino.cc/tutorials/uno-r4-wifi/wifi-examples#wi-fi-web-client
  */
 
-
 #include "WiFiS3.h"
 #include "arduino_secrets.h" 
 
@@ -56,17 +55,6 @@ void setup() {
   }
   
   printWifiStatus();
- 
-  Serial.println("\nStarting connection to server...");
-  // if you get a connection, report back via serial:
-  if (client.connect(server, 80)) {
-    Serial.println("connected to server");
-    // Make a HTTP request:
-    client.println("GET /search?q=arduino HTTP/1.1");
-    client.println("Host: www.google.com");
-    client.println("Connection: close");
-    client.println();
-  }
 }
 
 /* just wrap the received data up to 80 columns in the serial print*/
