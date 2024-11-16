@@ -32,7 +32,7 @@
 // Standard Libraries
 // ----------------------------
 
-#if defined(ESP8266)
+#if defined(ESP8266) // Replace with wifiS3
 #include <ESP8266WiFi.h>
 #elif defined(ESP32)
 #include <WiFi.h>
