@@ -31,6 +31,8 @@ void setup() {
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
+
+  setupUtils();
   
   // check for the WiFi module:
   if (WiFi.status() == WL_NO_MODULE) {
