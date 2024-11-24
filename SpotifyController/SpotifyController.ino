@@ -79,17 +79,10 @@ void read_response() {
 /* -------------------------------------------------------------------------- */
 void loop() {
 /* -------------------------------------------------------------------------- */  
-  read_response();
-
-  // if the server's disconnected, stop the client:
-  if (!client.connected()) {
-    Serial.println();
-    Serial.println("disconnecting from server.");
-    client.stop();
-
-    // do nothing forevermore:
-    while (true);
-  }
+  static state CURRENT_STATE = sWAIT_FOR_SONG;
+  updateInputs();
+  CURRENT_STATE = updateFSM(CURRENT_STATE, millis(), lastButtonPressed);
+  delay(10);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -109,4 +102,19 @@ void printWifiStatus() {
   Serial.print("signal strength (RSSI):");
   Serial.print(rssi);
   Serial.println(" dBm");
+}
+
+state updateFSM(state curState, long mils, int lastButton) {
+  state nextState;
+  switch(curState) {
+  case sWAIT_FOR_SONG:
+    break;
+  case sPAUSED:
+    break;
+  case sPLAYING:
+    break;
+  case sSKIPPING:
+    break;
+  }
+  
 }

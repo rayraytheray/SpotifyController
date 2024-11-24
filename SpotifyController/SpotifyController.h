@@ -12,3 +12,20 @@
 #define SPOTIFY_NEXT_TRACK_ENDPOINT "/v1/me/player/next"
 
 #define SPOTIFY_TOKEN_ENDPOINT "/api/token"
+
+//FSM States Enum
+typedef enum {
+  sWAIT_FOR_SONG = 1,
+  sPAUSED = 2,
+  sPLAYING = 3,
+  sSKIPPING = 4,
+} state;
+
+//Buttons Enum
+typedef enum {
+  PLAY_PAUSE = 0,
+  SKIP = 1,
+} input;
+
+//Variable to keep track of inputs
+input lastButtonPressed;
