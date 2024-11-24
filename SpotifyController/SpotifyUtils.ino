@@ -1,3 +1,6 @@
+#include <LiquidCrystal.h>
+
+
 // Pin definitions
 const int PLAY_PAUSE_PIN = 8;
 const int SKIP_PIN = 9;
@@ -70,7 +73,7 @@ void updateInputs() {
 
 //Display song name
 void displaySongName() {
-  
+
 }
 
 void displayProgressBar(long mils) {
