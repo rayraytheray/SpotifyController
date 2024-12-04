@@ -20,19 +20,35 @@ int lastUpdate;
 int timeBetweenUpdate = 1000;
 int barsFilled = 0;
 
+// void setupUtils() {
+//   pinMode(PLAY_PAUSE_PIN, INPUT);
+//   pinMode(SKIP_PIN, INPUT);
+
+//   // Setup LCD
+//   lcd.begin(16,2);
+//   lastUpdate = millis();
+//   // Write empty progress bar 
+//   for(int i=0; i<16; i++) {
+//     lcd.write("-");
+//   }
+//   //Reset lcd cursor to beginning of progress bar
+//   lcd.setCursor(0, 0);
+// }
 void setupUtils() {
   pinMode(PLAY_PAUSE_PIN, INPUT);
   pinMode(SKIP_PIN, INPUT);
 
-  // Setup LCD
-  lcd.begin(16,2);
-  lastUpdate = millis();
-  // Write empty progress bar 
-  for(int i=0; i<16; i++) {
-    lcd.write("-");
-  }
-  //Reset lcd cursor to beginning of progress bar
+  // Initialize the LCD
+  lcd.begin(16, 2); // Set up the LCD with 16 columns and 2 rows
+  lcd.clear();      // Clear the screen to ensure it's clean
+
+  // Initialize the progress bar
   lcd.setCursor(0, 0);
+  for (int i = 0; i < 16; i++) {
+    lcd.write('-'); // Write dashes to indicate an empty progress bar
+  }
+
+  displaySongName();
 }
 
 //Read in button presses
@@ -71,10 +87,39 @@ void updateInputs() {
 }
 
 
-//Display song name
 void displaySongName() {
+  const int songLength = 16000; // Simulated song length in milliseconds (16 seconds for simplicity)
+  const String songName = "Dummy Song";
+  int progress = 0;
 
+  // Clear the LCD to avoid leftover characters
+  lcd.clear();
+
+  // Display the song name on the second row
+  lcd.setCursor(0, 1); // Set cursor to the second row
+  lcd.print(songName); // Print the dummy song name
+
+  unsigned long startTime = millis();
+  while (progress < 16) {
+    unsigned long currentTime = millis();
+    if (currentTime - lastUpdate >= timeBetweenUpdate) {
+      lcd.setCursor(progress, 0);  // Set the cursor to the progress bar position (first row)
+      lcd.write(byte(255));       // Write a block (filled progress indicator)
+      progress++;
+      lastUpdate = currentTime;
+    }
+
+    // Exit the loop early if the simulated song time has elapsed
+    if (currentTime - startTime >= songLength) {
+      break;
+    }
+  }
+
+  // Reset for the next song
+  barsFilled = 0;
+  lastUpdate = millis();
 }
+
 
 void displayProgressBar(long mils) {
   //Add block to progress bar every timeBetweenUpdate

@@ -85,6 +85,9 @@ void loop() {
   updateInputs();
   CURRENT_STATE = updateFSM(CURRENT_STATE, millis(), lastButtonPressed);
   delay(10);
+  // if (playPauseState == HIGH) {
+  //   displaySongName();
+  // }
 }
 
 /* -------------------------------------------------------------------------- */
