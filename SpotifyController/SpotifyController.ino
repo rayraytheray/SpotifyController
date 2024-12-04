@@ -22,6 +22,7 @@ char server[] = "https://api.spotify.com";    // name address for Google (using 
 // with the IP address and port of the server
 // that you want to connect to (port 80 is default for HTTP):
 WiFiClient client;
+bool wifiConnected = false;
 
 /* -------------------------------------------------------------------------- */
 void setup() {
@@ -33,31 +34,6 @@ void setup() {
   }
 
   setupUtils();
-  
-  // check for the WiFi module:
-  if (WiFi.status() == WL_NO_MODULE) {
-    Serial.println("Communication with WiFi module failed!");
-    // don't continue
-    while (true);
-  }
-  
-  String fv = WiFi.firmwareVersion();
-  if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
-    Serial.println("Please upgrade the firmware");
-  }
-  
-  // attempt to connect to WiFi network:
-  while (status != WL_CONNECTED) {
-    Serial.print("Attempting to connect to SSID: ");
-    Serial.println(ssid);
-    // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
-    status = WiFi.begin(ssid);
-     
-    // wait 10 seconds for connection:
-    delay(10000);
-  }
-  
-  printWifiStatus();
 }
 
 /* just wrap the received data up to 80 columns in the serial print*/
@@ -81,13 +57,65 @@ void read_response() {
 /* -------------------------------------------------------------------------- */
 void loop() {
 /* -------------------------------------------------------------------------- */  
-  static state CURRENT_STATE = sWAIT_FOR_SONG;
+  static state CURRENT_STATE = sWAIT_FOR_WIFI;
   updateInputs();
   CURRENT_STATE = updateFSM(CURRENT_STATE, millis(), lastButtonPressed);
   delay(10);
   // if (playPauseState == HIGH) {
   //   displaySongName();
   // }
+}
+
+state updateFSM(state curState, long mils, int lastButton) {
+  state nextState;
+  switch(curState) {
+  case sWAIT_FOR_WIFI: 
+    if(wifiConnected) {
+      nextState = sWAIT_FOR_SONG;
+    }
+    displayWaitingForWifi();
+    connectWifi();
+    break;
+  case sWAIT_FOR_SONG:
+    displayProgressBar();
+    break;
+  case sPAUSED:
+    break;
+  case sPLAYING:
+    updateProgressBar(millis());
+    break;
+  case sSKIPPING:
+    break;
+  }
+  return nextState;
+}
+
+void connectWifi() {
+  // check for the WiFi module:
+  if (WiFi.status() == WL_NO_MODULE) {
+    Serial.println("Communication with WiFi module failed!");
+    // don't continue
+    while (true);
+  }
+  
+  String fv = WiFi.firmwareVersion();
+  if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
+    Serial.println("Please upgrade the firmware");
+  }
+  
+  // attempt to connect to WiFi network:
+  while (status != WL_CONNECTED) {
+    Serial.print("Attempting to connect to SSID: ");
+    Serial.println(ssid);
+    // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
+    status = WiFi.begin(ssid);
+     
+    // wait 10 seconds for connection:
+    delay(10000);
+  }
+  
+  wifiConnected = true;
+  printWifiStatus();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -107,19 +135,4 @@ void printWifiStatus() {
   Serial.print("signal strength (RSSI):");
   Serial.print(rssi);
   Serial.println(" dBm");
-}
-
-state updateFSM(state curState, long mils, int lastButton) {
-  state nextState;
-  switch(curState) {
-  case sWAIT_FOR_SONG:
-    break;
-  case sPAUSED:
-    break;
-  case sPLAYING:
-    break;
-  case sSKIPPING:
-    break;
-  }
-  
 }

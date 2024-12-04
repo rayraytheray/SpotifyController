@@ -16,40 +16,37 @@ const unsigned long debounceDelay = 50;  // Adjust if needed
 //LCD Variables
 const int rs = 0, en = 1, d4 = 2, d5 = 3, d6 = 4, d7 = 5;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
-int lastUpdate;
+long lastUpdate;
 int timeBetweenUpdate = 1000;
 int barsFilled = 0;
 
-// void setupUtils() {
-//   pinMode(PLAY_PAUSE_PIN, INPUT);
-//   pinMode(SKIP_PIN, INPUT);
-
-//   // Setup LCD
-//   lcd.begin(16,2);
-//   lastUpdate = millis();
-//   // Write empty progress bar 
-//   for(int i=0; i<16; i++) {
-//     lcd.write("-");
-//   }
-//   //Reset lcd cursor to beginning of progress bar
-//   lcd.setCursor(0, 0);
-// }
 void setupUtils() {
   pinMode(PLAY_PAUSE_PIN, INPUT);
   pinMode(SKIP_PIN, INPUT);
 
-  // Initialize the LCD
-  lcd.begin(16, 2); // Set up the LCD with 16 columns and 2 rows
-  lcd.clear();      // Clear the screen to ensure it's clean
+  // Setup LCD
+  lcd.begin(16,2);
+  lastUpdate = millis();
 
-  // Initialize the progress bar
+  //Reset lcd cursor to beginning of progress bar
   lcd.setCursor(0, 0);
-  for (int i = 0; i < 16; i++) {
-    lcd.write('-'); // Write dashes to indicate an empty progress bar
-  }
-
-  displaySongName();
 }
+// void setupUtils() {
+//   pinMode(PLAY_PAUSE_PIN, INPUT);
+//   pinMode(SKIP_PIN, INPUT);
+
+//   // Initialize the LCD
+//   lcd.begin(16, 2); // Set up the LCD with 16 columns and 2 rows
+//   lcd.clear();      // Clear the screen to ensure it's clean
+
+//   // Initialize the progress bar
+//   lcd.setCursor(0, 0);
+//   for (int i = 0; i < 16; i++) {
+//     lcd.write('-'); // Write dashes to indicate an empty progress bar
+//   }
+
+//   displaySongName();
+// }
 
 //Read in button presses
 void updateInputs() {
@@ -86,46 +83,58 @@ void updateInputs() {
   lastSkipState = skipReading;
 }
 
-
 void displaySongName() {
-  const int songLength = 16000; // Simulated song length in milliseconds (16 seconds for simplicity)
+  // const int songLength = 16000; // Simulated song length in milliseconds (16 seconds for simplicity)
   const String songName = "Dummy Song";
-  int progress = 0;
+  // int progress = 0;
 
-  // Clear the LCD to avoid leftover characters
-  lcd.clear();
+  // // Clear the LCD to avoid leftover characters
+  // lcd.clear();
 
   // Display the song name on the second row
   lcd.setCursor(0, 1); // Set cursor to the second row
   lcd.print(songName); // Print the dummy song name
+  lcd.setCursor(0, 0); //Reset cursor to first row for progress bar
 
-  unsigned long startTime = millis();
-  while (progress < 16) {
-    unsigned long currentTime = millis();
-    if (currentTime - lastUpdate >= timeBetweenUpdate) {
-      lcd.setCursor(progress, 0);  // Set the cursor to the progress bar position (first row)
-      lcd.write(byte(255));       // Write a block (filled progress indicator)
-      progress++;
-      lastUpdate = currentTime;
-    }
+  // unsigned long startTime = millis();
+  // while (progress < 16) {
+  //   unsigned long currentTime = millis();
+  //   if (currentTime - lastUpdate >= timeBetweenUpdate) {
+  //     lcd.setCursor(progress, 0);  // Set the cursor to the progress bar position (first row)
+  //     lcd.write(byte(255));       // Write a block (filled progress indicator)
+  //     progress++;
+  //     lastUpdate = currentTime;
+  //   }
 
-    // Exit the loop early if the simulated song time has elapsed
-    if (currentTime - startTime >= songLength) {
-      break;
-    }
-  }
+  //   // Exit the loop early if the simulated song time has elapsed
+  //   if (currentTime - startTime >= songLength) {
+  //     break;
+  //   }
+  // }
 
-  // Reset for the next song
-  barsFilled = 0;
-  lastUpdate = millis();
+  // // Reset for the next song
+  // barsFilled = 0;
+  // lastUpdate = millis();
 }
 
+void displayProgressBar() {
+  // Write empty progress bar 
+  lcd.setCursor(0, 0);
+  for(int i=0; i<16; i++) {
+    lcd.write("-");
+  }
+}
 
-void displayProgressBar(long mils) {
+void updateProgressBar(long mils) {
   //Add block to progress bar every timeBetweenUpdate
   if(mils - lastUpdate >= timeBetweenUpdate && barsFilled < 16) {
     lcd.write(byte(255));
     barsFilled++;
     lastUpdate = mils;
   }
+}
+
+void displayWaitingForWifi() {
+  lcd.setCursor(0, 0);
+  lcd.print("Waiting for WiFI Connection...");
 }
