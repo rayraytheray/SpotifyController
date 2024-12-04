@@ -16,7 +16,8 @@ int status = WL_IDLE_STATUS;
 // if you don't want to use DNS (and reduce your sketch size)
 // use the numeric IP instead of the name for the server:
 //IPAddress server(74,125,232,128);  // numeric IP for Google (no DNS)
-char server[] = "https://api.spotify.com";    // name address for Google (using DNS)
+char authServer[] = "accounts.spotify.com";
+char server[] = "api.spotify.com";    // name address for Spotify's API (using DNS)
 
 // Initialize the Ethernet client library
 // with the IP address and port of the server
@@ -56,6 +57,22 @@ void setup() {
   }
   
   printWifiStatus();
+
+  // client.setCACert(SPOTIFY_SERVER_CERT);
+
+  Serial.println("\nStarting connection to server...");
+  // if you get a connection, report back via serial:
+  // if (client.connect(authServer, 443)) {
+  //   Serial.println("connected to server");
+  //   // Make a HTTP request:
+  //   client.println("POST /api/token HTTP/1.1");
+  //   client.println("Host: accounts.spotify.com");
+  //   client.println("User-Agent: Arduino/1.0");
+  //   client.println("Content-Type: application/x-www-form-urlencoded");
+  //   client.println("grant_type=client_credentials&client_id=9bbfd9ae49674d6e82a850e1fd4e2e12&client_secret=ae66c82bb5634a7c9fe282348b05dc2f");
+  //   client.println("Connection: close");
+  //   client.println();
+  // }
 }
 
 /* just wrap the received data up to 80 columns in the serial print*/
@@ -78,35 +95,30 @@ void read_response() {
 
 /* -------------------------------------------------------------------------- */
 void loop() {
+  client.flush();
 /* -------------------------------------------------------------------------- */  
-  read_response();
+  if (client.connect(authServer, 80)) {
+    char *body = "grant_type=client_credentials&client_id=9bbfd9ae49674d6e82a850e1fd4e2e12&client_secret=ae66c82bb5634a7c9fe282348b05dc2f";
+    Serial.println("connected to server");
+    // Make a HTTP request:
+    client.println("POST /api/token HTTP/1.0");
+    client.println("Host: accounts.spotify.com");
+    client.println("Accept: application/json");
+    client.println("Content-Type: application/x-www-form-urlencoded");
+    client.println("Cache-Control: no-cache");
+    client.print("Content-Length: ");
+    client.println(strlen(body));
+    client.println();
+    client.println("grant_type=client_credentials&client_id=9bbfd9ae49674d6e82a850e1fd4e2e12&client_secret=ae66c82bb5634a7c9fe282348b05dc2f");
+    client.println("Connection: close");
+    client.println();
+    read_response();
+  }
 
   // if the server's disconnected, stop the client:
   if (!client.connected()) {
-    Serial.println();
-    Serial.println("disconnecting from server.");
+    // Serial.println();
+    // Serial.println("disconnecting from server.");
     client.stop();
-
-    // do nothing forevermore:
-    while (true);
   }
-}
-
-/* -------------------------------------------------------------------------- */
-void printWifiStatus() {
-/* -------------------------------------------------------------------------- */  
-  // print the SSID of the network you're attached to:
-  Serial.print("SSID: ");
-  Serial.println(WiFi.SSID());
-
-  // print your board's IP address:
-  IPAddress ip = WiFi.localIP();
-  Serial.print("IP Address: ");
-  Serial.println(ip);
-
-  // print the received signal strength:
-  long rssi = WiFi.RSSI();
-  Serial.print("signal strength (RSSI):");
-  Serial.print(rssi);
-  Serial.println(" dBm");
 }
