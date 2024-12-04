@@ -80,8 +80,10 @@ state updateFSM(state curState, long mils, int lastButton) {
     displayProgressBar();
     break;
   case sPAUSED:
+    displaySongName();
     break;
   case sPLAYING:
+    displaySongName();
     updateProgressBar(millis());
     break;
   case sSKIPPING:
