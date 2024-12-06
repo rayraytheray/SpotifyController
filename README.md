@@ -1,2 +1,12 @@
 # SpotifyController
 Code for an Arduino based spotify controller
+
+# How to Run
+First set up Python environment using venv and pip install the necessary modules.
+While in venv, first run the Python program using `python3 main.py`.
+This will prompt you to enter the port number for the Arduino, which should be clear since we 
+are only using one Arduino. 
+Then, go into the Arduino IDE and upload the code onto the Arduino. **Shut down the Arduino IDE after this.**  
+The Python code cannot detect the Arduino if not! 
+After that, press the reset button on the Arduino to allow for operation. 
+Logs should read Arduino ready, after which system is finished loading.s
