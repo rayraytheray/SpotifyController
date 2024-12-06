@@ -12,3 +12,11 @@
 #define SPOTIFY_NEXT_TRACK_ENDPOINT "/v1/me/player/next"
 
 #define SPOTIFY_TOKEN_ENDPOINT "/api/token"
+
+#define SPOTIFY_ACCESS_TOKEN_LENGTH 309
+
+char _bearerToken[SPOTIFY_ACCESS_TOKEN_LENGTH + 10];
+
+char serialBuffer[1024];
+int bytesRead = 0;
+int writtenTo = 0;
