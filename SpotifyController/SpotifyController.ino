@@ -3,47 +3,12 @@
   https://docs.arduino.cc/tutorials/uno-r4-wifi/wifi-examples#wi-fi-web-client
  */
 
-<<<<<<< HEAD
 void setup() {
   Serial.begin(115200); Serial.println();
   Serial.println("OK"); // let the python code know we are ready
-=======
-#include "WiFiS3.h"
-#include "arduino_secrets.h" 
-#include "SpotifyController.h"
-
-///////please enter your sensitive data in the Secret tab/arduino_secrets.h
-char ssid[] = SECRET_SSID;        // your network SSID (name)
-char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
-int keyIndex = 0;            // your network key index number (needed only for WEP)
-
-int status = WL_IDLE_STATUS;
-// if you don't want to use DNS (and reduce your sketch size)
-// use the numeric IP instead of the name for the server:
-//IPAddress server(74,125,232,128);  // numeric IP for Google (no DNS)
-char server[] = "https://api.spotify.com";    // name address for Google (using DNS)
-
-// Initialize the Ethernet client library
-// with the IP address and port of the server
-// that you want to connect to (port 80 is default for HTTP):
-WiFiClient client;
-bool wifiConnected = false;
-
-/* -------------------------------------------------------------------------- */
-void setup() {
-/* -------------------------------------------------------------------------- */  
-  //Initialize serial and wait for port to open:
-  Serial.begin(9600);
-  while (!Serial) {
-    ; // wait for serial port to connect. Needed for native USB port only
-  }
-
-  setupUtils();
->>>>>>> fsm
 }
 
 void loop() {
-<<<<<<< HEAD
   // echo back in uppercase what we received
   if (Serial.available()) {
     writeToBuf();
@@ -53,7 +18,6 @@ void loop() {
     }
   }
 }
-=======
 /* -------------------------------------------------------------------------- */  
   static state CURRENT_STATE = sWAIT_FOR_WIFI;
   updateInputs();
@@ -136,4 +100,3 @@ void printWifiStatus() {
   Serial.print(rssi);
   Serial.println(" dBm");
 }
->>>>>>> fsm

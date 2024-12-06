@@ -13,7 +13,6 @@
 
 #define SPOTIFY_TOKEN_ENDPOINT "/api/token"
 
-<<<<<<< HEAD
 #define SPOTIFY_ACCESS_TOKEN_LENGTH 309
 
 char _bearerToken[SPOTIFY_ACCESS_TOKEN_LENGTH + 10];
@@ -21,7 +20,6 @@ char _bearerToken[SPOTIFY_ACCESS_TOKEN_LENGTH + 10];
 char serialBuffer[1024];
 int bytesRead = 0;
 int writtenTo = 0;
-=======
 //FSM States Enum
 typedef enum {
   sWAIT_FOR_WIFI = 0,
@@ -39,4 +37,3 @@ typedef enum {
 
 //Variable to keep track of inputs
 input lastButtonPressed;
->>>>>>> fsm
