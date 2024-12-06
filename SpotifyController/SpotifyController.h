@@ -22,7 +22,6 @@ int bytesRead = 0;
 int writtenTo = 0;
 //FSM States Enum
 typedef enum {
-  sWAIT_FOR_WIFI = 0,
   sWAIT_FOR_SONG = 1,
   sPAUSED = 2,
   sPLAYING = 3,

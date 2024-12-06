@@ -92,8 +92,3 @@ void updateProgressBar(long mils) {
     lastUpdate = mils;
   }
 }
-
-void displayWaitingForWifi() {
-  lcd.setCursor(0, 0);
-  lcd.print("Waiting for WiFi");
-}
