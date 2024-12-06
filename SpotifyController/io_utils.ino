@@ -1,4 +1,3 @@
-
 void writeToBuf() {
   int c = Serial.read();
   serialBuffer[bytesRead] = c;
@@ -6,7 +5,7 @@ void writeToBuf() {
   writtenTo = 1;
 }
 // Only ever called if writtenTo is true
-void readResponse() {
+JsonDocument readResponse() {
   JsonDocument doc;
   DeserializationError error = deserializeJson(doc, serialBuffer);
   if (error) {

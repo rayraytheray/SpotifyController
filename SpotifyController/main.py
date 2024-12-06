@@ -18,6 +18,18 @@
 #  THE SOFTWARE.
 #  ===============================================
 
+#define SPOTIFY_HOST "api.spotify.com"
+#define SPOTIFY_ACCOUNTS_HOST "accounts.spotify.com"
+
+#define SPOTIFY_PLAYER_ENDPOINT "/v1/me/player"
+#define SPOTIFY_DEVICES_ENDPOINT "/v1/me/player/devices"
+
+#define SPOTIFY_PLAY_ENDPOINT "/v1/me/player/play"
+#define SPOTIFY_PAUSE_ENDPOINT "/v1/me/player/pause"
+#define SPOTIFY_NEXT_TRACK_ENDPOINT "/v1/me/player/next"
+
+#define SPOTIFY_TOKEN_ENDPOINT "/api/token"
+
 
 import sys, threading, queue, serial
 import serial.tools.list_ports
@@ -27,6 +39,10 @@ import arduino_secrets
 baudRate = 115200
 arduinoQueue = queue.Queue()
 localQueue = queue.Queue()
+
+refreshToken = None
+tokenType = None
+ttl = None
 
 class NoValidPortError(Exception):
     """Exception raised when no valid Arduino ports are found."""
@@ -69,16 +85,15 @@ def listenToArduino():
             if incoming not in (b'', b'\r'):
                 message += incoming
 
-def listenToLocal():
-    while True:
-        command = sys.stdin.readline().strip().upper()
-        localQueue.put(command)
+# def listenToLocal():
+#     while True:
+#         command = sys.stdin.readline().strip().upper()
+#         localQueue.put(command)
 
-def configureUserInput():
-    localThread = threading.Thread(target=listenToLocal, args=())
-    localThread.daemon = True
-    localThread.start()
-
+# def configureUserInput():
+#     localThread = threading.Thread(target=listenToLocal, args=())
+#     localThread.daemon = True
+#     localThread.start()
 
 def configureArduino():
     global arduinoPort
@@ -96,23 +111,44 @@ def getRefreshToken():
     r = requests.post(url, data=payload, headers=headers)
     if (r.status_code != 200):
         raise ConnectionError(r.status_code)
-    arduino.write(str(r.json()).encode("utf-8"))
-    arduino.write(bytes("\n", encoding="utf-8"))
+    refreshToken = r.json()["access_token"]
+    tokenType = r.json()["token_type"]
+    ttl = r.json()["expires_in"]
+    
+    # Most likely the Arduino system won't need the refresh token, since only the computer is running requests
+    # arduino.write(str(r.json()).encode("utf-8"))
+    # arduino.write(bytes("\n", encoding="utf-8"))
 
 # ---- CALLBACKS UPON MESSAGES -----
 
-def handleLocalMessage(aMessage):
-    print("[LOCAL]: " + aMessage)
-    arduino.write(aMessage.encode('utf-8'))
-    arduino.write(bytes('\n', encoding='utf-8'))
+# def handleLocalMessage(aMessage):
+#     print("[LOCAL]: " + aMessage)
+#     arduino.write(aMessage.encode('utf-8'))
+#     arduino.write(bytes('\n', encoding='utf-8'))
 
 def handleArduinoMessage(aMessage):
     print("[ARDUINO]: " + aMessage)
 
+# play, pause, skip, getSongDuration
+def handlePlay():
+    pass
+
+def handlePause(): 
+    pass
+
+def handleSkip():
+    pass
+
+def handleGetSongDuration():
+    pass
+
+def handleVolume():
+    pass
+
 # ---- MAIN CODE -----
 
 configureArduino()                                      # will reboot AVR based Arduinos
-configureUserInput()                                    # handle stdin 
+# configureUserInput()                                    # handle stdin 
 
 print("Waiting for Arduino")
 
@@ -130,5 +166,5 @@ while True:
     if not arduinoQueue.empty():
         handleArduinoMessage(arduinoQueue.get())
 
-    if not localQueue.empty():
-        handleLocalMessage(localQueue.get())
+    # if not localQueue.empty():
+    #     handleLocalMessage(localQueue.get())
