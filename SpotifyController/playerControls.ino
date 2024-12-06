@@ -38,7 +38,11 @@
 // #include <WiFi.h>
 // #endif
 
+<<<<<<< HEAD
 // // #include <WiFiClientSecure.h>
+=======
+// #include <WiFiClientSecure.h>
+>>>>>>> fsm
 
 // // ----------------------------
 // // Additional Libraries - each one of these will need to be installed.
