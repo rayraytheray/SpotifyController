@@ -34,7 +34,7 @@ state updateFSM(state curState, long mils, int lastButton) {
     break;
   case sPLAYING:
     displaySongName();
-    updateProgressBar(millis());
+    updateProgressBar(mils);
     break;
   case sSKIPPING:
     break;
