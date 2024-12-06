@@ -1,5 +1,5 @@
 #include <LiquidCrystal.h>
-
+#include "SpotifyUtils.h"
 
 // Pin definitions
 const int PLAY_PAUSE_PIN = 8;

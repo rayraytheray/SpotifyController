@@ -1,6 +1,11 @@
+#include "SpotifyController.h"
+#include "SpotifyUtils.h"
+#include "io_utils.h"
+
 void setup() {
   Serial.begin(115200); Serial.println();
   Serial.println("OK"); // let the python code know we are ready
+  setupUtils();
 }
 
 void loop() {
@@ -12,15 +17,11 @@ void loop() {
       JsonDocument doc = readResponse();
     }
   }
-}
-/* -------------------------------------------------------------------------- */  
+
   static state CURRENT_STATE = sWAIT_FOR_SONG;
   updateInputs();
   CURRENT_STATE = updateFSM(CURRENT_STATE, millis(), lastButtonPressed);
   delay(10);
-  // if (playPauseState == HIGH) {
-  //   displaySongName();
-  // }
 }
 
 state updateFSM(state curState, long mils, int lastButton) {

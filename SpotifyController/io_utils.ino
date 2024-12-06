@@ -1,3 +1,4 @@
+#include "io_utils.h"
 
 void writeToBuf() {
   int c = Serial.read();
@@ -6,7 +7,7 @@ void writeToBuf() {
   writtenTo = 1;
 }
 // Only ever called if writtenTo is true
-void readResponse() {
+JsonDocument readResponse() {
   JsonDocument doc;
   DeserializationError error = deserializeJson(doc, serialBuffer);
   if (error) {

@@ -1,5 +1,8 @@
+#ifndef SPOTIFY_CONTROLLER_H
+#define SPOTIFY_CONTROLLER_H
+
 #include <Arduino.h>
-// #include <ArduinoJson.h>
+#include <ArduinoJson.h>
 
 #define SPOTIFY_HOST "api.spotify.com"
 #define SPOTIFY_ACCOUNTS_HOST "accounts.spotify.com"
@@ -36,3 +39,5 @@ typedef enum {
 
 //Variable to keep track of inputs
 input lastButtonPressed;
+
+#endif
