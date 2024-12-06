@@ -13,6 +13,7 @@
 #define SPOTIFY_PLAY_ENDPOINT "/v1/me/player/play"
 #define SPOTIFY_PAUSE_ENDPOINT "/v1/me/player/pause"
 #define SPOTIFY_NEXT_TRACK_ENDPOINT "/v1/me/player/next"
+#define SPOTIFY_CURRENTLY_PLAYING "/v1/me/player/currently-playing"
 
 #define SPOTIFY_TOKEN_ENDPOINT "/api/token"
 
