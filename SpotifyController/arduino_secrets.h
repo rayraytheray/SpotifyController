@@ -1,6 +1,3 @@
-#define SECRET_SSID "Brown-Guest"
-#define SECRET_PASS ""
-
 const char* SPOTIFY_SERVER_CERT = 
 "-----BEGIN CERTIFICATE-----\n"
 "MIIDjjCCAnagAwIBAgIQAzrx5qcRqaC7KGSxHQn65TANBgkqhkiG9w0BAQsFADBh\n"

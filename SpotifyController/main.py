@@ -32,8 +32,10 @@
 
 
 import sys, threading, queue, serial
+import datetime 
 import serial.tools.list_ports
 import requests 
+import osascript
 import arduino_secrets
 
 baudRate = 115200
@@ -43,6 +45,19 @@ localQueue = queue.Queue()
 refreshToken = None
 tokenType = None
 ttl = None
+
+SPOTIFY_HOST = "api.spotify.com"
+SPOTIFY_ACCOUNTS_HOST = "accounts.spotify.com"
+
+SPOTIFY_PLAYER_ENDPOINT = SPOTIFY_HOST + "/v1/me/player"
+SPOTIFY_DEVICES_ENDPOINT = SPOTIFY_HOST + "/v1/me/player/devices"
+
+SPOTIFY_PLAY_ENDPOINT = SPOTIFY_HOST + "/v1/me/player/play"
+SPOTIFY_PAUSE_ENDPOINT = SPOTIFY_HOST + "/v1/me/player/pause"
+SPOTIFY_NEXT_TRACK_ENDPOINT = SPOTIFY_HOST + "/v1/me/player/next"
+SPOTIFY_CURRENT_SONG_ENDPOINT = SPOTIFY_HOST + "/v1/me/player/currently-playing"
+
+SPOTIFY_TOKEN_ENDPOINT = SPOTIFY_ACCOUNTS_HOST + "/api/token"
 
 class NoValidPortError(Exception):
     """Exception raised when no valid Arduino ports are found."""
@@ -104,13 +119,16 @@ def configureArduino():
     arduinoThread.daemon = True
     arduinoThread.start()
 
+def writeToArduino(message):
+    arduino.write(message.encode("utf-8"))
+    arduino.write(bytes("\n", encoding="utf-8"))
+
 def getRefreshToken():
-    url = "https://accounts.spotify.com/api/token"
     payload = f"grant_type=client_credentials&client_id={arduino_secrets.CLIENT_ID}&client_secret={arduino_secrets.CLIENT_SECRET}"
-    headers = {"content-type": "application/x-www-form-urlencoded"}
-    r = requests.post(url, data=payload, headers=headers)
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+    r = requests.post(SPOTIFY_TOKEN_ENDPOINT, data=payload, headers=headers)
     if (r.status_code != 200):
-        raise ConnectionError(r.status_code)
+        writeToArduino("error")
     refreshToken = r.json()["access_token"]
     tokenType = r.json()["token_type"]
     ttl = r.json()["expires_in"]
@@ -125,25 +143,45 @@ def getRefreshToken():
 #     print("[LOCAL]: " + aMessage)
 #     arduino.write(aMessage.encode('utf-8'))
 #     arduino.write(bytes('\n', encoding='utf-8'))
+def handlePlay(*args):
+    pass
+
+def handlePause(*args): 
+    pass
+
+def handleSkip(*args):
+    pass
+
+def handleGetSongDuration(*args):
+    if (refreshToken is None):
+        writeToArduino("error")
+    headers = {"Authorization": f"{tokenType} {refreshToken}"}
+    r = requests.get(SPOTIFY_CURRENT_SONG_ENDPOINT, headers=headers)
+    if (r.status_code != 200):
+        writeToArduino("error")
+
+    item = r.json()["item"]
+    if (item is None):
+        writeToArduino("error")
+    writeToArduino(str(item.duration_ms))
+
+def handleVolume(*args):
+    osascript.osascript(f"set volume output volume {args[0]}")
+
+messageResponses = {
+    "play": handlePlay,
+    "pause": handlePause,
+    "skip": handleSkip,
+    "getSongDuration": handleGetSongDuration,
+    "volume": handleVolume
+}
 
 def handleArduinoMessage(aMessage):
-    print("[ARDUINO]: " + aMessage)
-
-# play, pause, skip, getSongDuration
-def handlePlay():
-    pass
-
-def handlePause(): 
-    pass
-
-def handleSkip():
-    pass
-
-def handleGetSongDuration():
-    pass
-
-def handleVolume():
-    pass
+    print(str(datetime.datetime.now()) + ": [ARDUINO] " + aMessage)
+    tokens = aMessage.strip().split()
+    request = tokens[0]
+    args = tokens[1:]
+    messageResponses[request](args)
 
 # ---- MAIN CODE -----
 

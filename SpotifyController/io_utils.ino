@@ -1,3 +1,5 @@
+#include "io_utils.h"
+
 void writeToBuf() {
   int c = Serial.read();
   serialBuffer[bytesRead] = c;

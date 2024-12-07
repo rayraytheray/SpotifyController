@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 // #include <LiquidCrystal.h>
 
+=======
+#include <LiquidCrystal.h>
+#include "SpotifyUtils.h"
+>>>>>>> b1e6a1fdadd87ea53ffbf36b594a49e969654c2c
 
 // // Pin definitions
 // const int PLAY_PAUSE_PIN = 8;
@@ -84,6 +89,7 @@
 //   }
 // }
 
+<<<<<<< HEAD
 // void updateProgressBar(long mils) {
 //   //Add block to progress bar every timeBetweenUpdate
 //   if(mils - lastUpdate >= timeBetweenUpdate && barsFilled < 16) {
@@ -97,3 +103,13 @@
 //   lcd.setCursor(0, 0);
 //   lcd.print("Waiting for WiFi");
 // }
+=======
+void updateProgressBar(long mils) {
+  //Add block to progress bar every timeBetweenUpdate
+  if(mils - lastUpdate >= timeBetweenUpdate && barsFilled < 16) {
+    lcd.write(byte(255));
+    barsFilled++;
+    lastUpdate = mils;
+  }
+}
+>>>>>>> b1e6a1fdadd87ea53ffbf36b594a49e969654c2c
