@@ -47,7 +47,7 @@ tokenType = None
 ttl = None
 
 SPOTIFY_HOST = "api.spotify.com"
-SPOTIFY_ACCOUNTS_HOST = "accounts.spotify.com"
+SPOTIFY_ACCOUNTS_HOST = "https://accounts.spotify.com"
 
 SPOTIFY_PLAYER_ENDPOINT = SPOTIFY_HOST + "/v1/me/player"
 SPOTIFY_DEVICES_ENDPOINT = SPOTIFY_HOST + "/v1/me/player/devices"
@@ -132,6 +132,7 @@ def getRefreshToken():
     refreshToken = r.json()["access_token"]
     tokenType = r.json()["token_type"]
     ttl = r.json()["expires_in"]
+    print(f"Refresh Token: {refreshToken}")
     
     # Most likely the Arduino system won't need the refresh token, since only the computer is running requests
     # arduino.write(str(r.json()).encode("utf-8"))
@@ -143,14 +144,76 @@ def getRefreshToken():
 #     print("[LOCAL]: " + aMessage)
 #     arduino.write(aMessage.encode('utf-8'))
 #     arduino.write(bytes('\n', encoding='utf-8'))
-def handlePlay(*args):
-    pass
+def handlePlay():
+    # global refreshToken, tokenType
+    # print(f"Using refreshToken: {refreshToken}")
+    if (refreshToken is None):
+        writeToArduino("error")
+    headers = {"Authorization": f"Bearer {refreshToken}", "Content-Type": "application/x-www-form-urlencoded"}
+
+    try:
+        r = requests.put("https://api.spotify.com/v1/me/player/play", headers=headers)
+        if r.status_code == 204:
+            print("Playback started successfully")
+            writeToArduino("playback started")
+        elif r.status_code in [401, 403]:
+            print(f"Authorization error: {r.status_code}, {r.text}")
+            writeToArduino("authorization error")
+        elif r.status_code == 429:
+            print("Rate limit exceeded")
+            writeToArduino("rate limit exceeded")
+        else:
+            print(f"Playback failed: {r.status_code}, {r.text}")
+            writeToArduino("playback failed")
+    except Exception as e:
+        print(f"Error in handlePlay: {e}")
+        writeToArduino("error")
 
 def handlePause(*args): 
-    pass
+    if (refreshToken is None):
+        writeToArduino("error")
+    headers = {"Authorization": f"Bearer {refreshToken}"}
+
+    try:
+        r = requests.put("https://api.spotify.com/v1/me/player/pause", headers=headers)
+        if r.status_code == 204:
+            print("Playback started successfully")
+            writeToArduino("playback started")
+        elif r.status_code in [401, 403]:
+            print(f"Authorization error: {r.status_code}, {r.text}")
+            writeToArduino("authorization error")
+        elif r.status_code == 429:
+            print("Rate limit exceeded")
+            writeToArduino("rate limit exceeded")
+        else:
+            print(f"Playback failed: {r.status_code}, {r.text}")
+            writeToArduino("playback failed")
+    except Exception as e:
+        print(f"Error in handlePlay: {e}")
+        writeToArduino("error")
 
 def handleSkip(*args):
-    pass
+    if (refreshToken is None):
+        writeToArduino("error")
+    headers = {"Authorization": f"Bearer {refreshToken}"}
+
+    try:
+        r = requests.post("https://api.spotify.com/v1/me/player/skip", headers=headers)
+        if r.status_code == 204:
+            print("Playback started successfully")
+            writeToArduino("playback started")
+        elif r.status_code in [401, 403]:
+            print(f"Authorization error: {r.status_code}, {r.text}")
+            writeToArduino("authorization error")
+        elif r.status_code == 429:
+            print("Rate limit exceeded")
+            writeToArduino("rate limit exceeded")
+        else:
+            print(f"Playback failed: {r.status_code}, {r.text}")
+            writeToArduino("playback failed")
+    except Exception as e:
+        print(f"Error in handlePlay: {e}")
+        writeToArduino("error")
 
 def handleGetSongDuration(*args):
     if (refreshToken is None):
@@ -179,9 +242,9 @@ messageResponses = {
 def handleArduinoMessage(aMessage):
     print(str(datetime.datetime.now()) + ": [ARDUINO] " + aMessage)
     tokens = aMessage.strip().split()
-    request = tokens[0]
-    args = tokens[1:]
-    messageResponses[request](args)
+    # request = tokens[0]
+    # args = tokens[1:]
+    # messageResponses[request](args)
 
 # ---- MAIN CODE -----
 
@@ -198,6 +261,7 @@ while True:
             break
 print("Arduino Ready")
 getRefreshToken()
+handlePause()
 
 # --- Now you handle the commands received either from Arduino or stdin
 while True:
