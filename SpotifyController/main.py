@@ -303,10 +303,9 @@ while True:
             break
 print("Arduino Ready")
 # getRefreshToken()
-handleGetSongDuration()
+# handleGetSongDuration()
 restartSong()
 handlePause()
-# handleGetSongDuration()
 
 
 # --- Now you handle the commands received either from Arduino or stdin

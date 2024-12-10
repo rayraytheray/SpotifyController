@@ -92,6 +92,7 @@ state updateFSM(state curState, long mils, int lastButton, JsonDocument doc) {
       skipFlag = false;
     }
     else if (playFlag) {
+      Serial.println("play");
       playFlag = false;
       nextState = sPLAYING;
     }
@@ -99,12 +100,13 @@ state updateFSM(state curState, long mils, int lastButton, JsonDocument doc) {
   case sPLAYING:
     displaySongName(songName);
     updateProgressBar(mils);
-    if (playFlag) {
-      playFlag = false;
-      nextState = sPAUSED;
-    }
     if (skipFlag) {
       skipFlag = false;
+    }
+    else if (playFlag) {
+      Serial.println("pause");
+      playFlag = false;
+      nextState = sPAUSED;
     }
     break;
   case sSKIPPING:
@@ -119,7 +121,7 @@ state updateFSM(state curState, long mils, int lastButton, JsonDocument doc) {
 void handlePlay() {
   unsigned long currentTime = millis();
   if (currentTime - lastPlayPress > DEBOUNCE_TIME) {
-      playFlag = true;
+      playFlag = !playFlag;
       lastPlayPress = currentTime;
   }
 }
