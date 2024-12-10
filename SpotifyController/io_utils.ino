@@ -12,6 +12,8 @@ JsonDocument readResponse() {
   DeserializationError error = deserializeJson(doc, serialBuffer);
   if (error) {
     Serial.print("Deserialization failed: ");
+    Serial.print(serialBuffer);
+    Serial.print(" :");
     Serial.println(error.c_str());
   }
   memset(serialBuffer, 0, sizeof serialBuffer);

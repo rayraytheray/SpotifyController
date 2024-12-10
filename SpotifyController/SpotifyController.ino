@@ -64,6 +64,7 @@ void loop() {
   int potValue = analogRead(A0); // Read potentiometer value (0-1023)
   Serial.print("volume ");     // Send value to the computer
   Serial.println(potValue);
+  delay(100);
 }
 
 state updateFSM(state curState, long mils, int lastButton) {

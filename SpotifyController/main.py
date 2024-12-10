@@ -37,7 +37,6 @@ import subprocess
 
 import serial.tools.list_ports
 import requests 
-import osascript
 import arduino_secrets
 
 baudRate = 115200
@@ -263,7 +262,8 @@ def handleArduinoMessage(aMessage):
     tokens = aMessage.strip().split()
     request = tokens[0]
     args = tokens[1:]
-    messageResponses[request](*args)
+    if (request in messageResponses):
+        messageResponses[request](*args)
 
 # ---- MAIN CODE -----
 
