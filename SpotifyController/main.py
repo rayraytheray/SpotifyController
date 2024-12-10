@@ -31,8 +31,10 @@
 #define SPOTIFY_TOKEN_ENDPOINT "/api/token"
 
 
-import sys, threading, queue, serial
+import threading, queue, serial
 import datetime 
+import subprocess
+
 import serial.tools.list_ports
 import requests 
 import osascript
@@ -144,7 +146,7 @@ def getRefreshToken():
 #     print("[LOCAL]: " + aMessage)
 #     arduino.write(aMessage.encode('utf-8'))
 #     arduino.write(bytes('\n', encoding='utf-8'))
-def handlePlay():
+def handlePlay(*args):
     # global refreshToken, tokenType
     # print(f"Using refreshToken: {refreshToken}")
     if (refreshToken is None):
@@ -152,7 +154,7 @@ def handlePlay():
     headers = {"Authorization": f"Bearer {refreshToken}", "Content-Type": "application/x-www-form-urlencoded"}
 
     try:
-        r = requests.put("https://api.spotify.com/v1/me/player/play", headers=headers)
+        r = requests.put(SPOTIFY_PLAY_ENDPOINT, headers=headers)
         if r.status_code == 204:
             print("Playback started successfully")
             writeToArduino("playback started")
@@ -175,7 +177,7 @@ def handlePause(*args):
     headers = {"Authorization": f"Bearer {refreshToken}"}
 
     try:
-        r = requests.put("https://api.spotify.com/v1/me/player/pause", headers=headers)
+        r = requests.put(SPOTIFY_PAUSE_ENDPOINT, headers=headers)
         if r.status_code == 204:
             print("Playback started successfully")
             writeToArduino("playback started")
@@ -229,7 +231,24 @@ def handleGetSongDuration(*args):
     writeToArduino(str(item.duration_ms))
 
 def handleVolume(*args):
-    osascript.osascript(f"set volume output volume {args[0]}")
+    volume_level = args[0]
+    if volume_level.isdigit():
+        pot_value = int(volume_level)
+            # Ensure pot_value is within the expected range
+        if 0 <= pot_value <= 1023:
+            # Map potentiometer value (0-1023) to volume range (0.0 to 1.0)
+            volume_level = pot_value / 1023.0
+            volume_percent = int(volume_level * 100)
+            # Use osascript to set the system volume
+            try:
+                subprocess.run(["osascript", "-e", f"set volume output volume {volume_percent}"])
+            except Exception as e:
+                print(f"{str(datetime.datetime.now())}: [LOCAL] (Error) {e}")
+            print(f"{str(datetime.datetime.now())}: [LOCAL] Volume set to {int(volume_level * 100)}%")
+        else:
+            print(f"{str(datetime.datetime.now())}: [LOCAL] Ignored out-of-range value '{pot_value}'")
+    else:
+        print(f"{str(datetime.datetime.now())}: [LOCAL] Ignored non-numeric data '{volume_level}'")
 
 messageResponses = {
     "play": handlePlay,
@@ -242,9 +261,9 @@ messageResponses = {
 def handleArduinoMessage(aMessage):
     print(str(datetime.datetime.now()) + ": [ARDUINO] " + aMessage)
     tokens = aMessage.strip().split()
-    # request = tokens[0]
-    # args = tokens[1:]
-    # messageResponses[request](args)
+    request = tokens[0]
+    args = tokens[1:]
+    messageResponses[request](*args)
 
 # ---- MAIN CODE -----
 
