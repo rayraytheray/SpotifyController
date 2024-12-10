@@ -224,8 +224,8 @@ def restartSong(*args):
         writeToArduino(str({"status": 401, "message": "authorization error"}))
     headers = {"Authorization": f"Bearer {refreshToken}"}
     r = requests.put("https://api.spotify.com/v1/me/player/seek?position_ms=0", headers=headers)
-    if (r.status_code != 204):
-        writeToArduino(str({"status": r.status_code, "message": "error"}))
+    if (r.status_code == 204):
+        writeToArduino(str({"status": r.status_code, "message": "playback reset"}))
     elif r.status_code in [401, 403]:
             print(f"Authorization error: {r.status_code}, {r.reason}")
             writeToArduino(str({"status": r.status_code, "message": "authorization error"}))
