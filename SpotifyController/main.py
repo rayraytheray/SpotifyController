@@ -156,19 +156,19 @@ def handlePlay(*args):
     try:
         r = requests.put("https://api.spotify.com/v1/me/player/play", headers=headers)
         if r.status_code == 204 or r.status_code == 200:
-            print("Succesfully started playing.")
+            print(f"{str(datetime.datetime.now())}: [LOCAL] Succesfully started playing.")
             writeToArduino("playback started")
         elif r.status_code in [401, 403]:
-            print(f"Authorization error: {r.status_code}, {r.text}")
+            print(f"{str(datetime.datetime.now())}: [LOCAL] Authorization error: {r.status_code}, {r.text}")
             writeToArduino("authorization error")
         elif r.status_code == 429:
-            print("Rate limit exceeded")
+            print(f"{str(datetime.datetime.now())}: [LOCAL] Rate limit exceeded")
             writeToArduino("rate limit exceeded")
         else:
-            print(f"Playback failed: {r.status_code}, {r.text}")
+            print(f"{str(datetime.datetime.now())}: [LOCAL] Playback failed: {r.status_code}, {r.text}")
             writeToArduino("playback failed")
     except Exception as e:
-        print(f"Error in handlePlay: {e}")
+        print(f"{str(datetime.datetime.now())}: [LOCAL] Error in handlePlay: {e}")
         writeToArduino("error")
 
 def handlePause(*args): 
@@ -179,19 +179,19 @@ def handlePause(*args):
     try:
         r = requests.put("https://api.spotify.com/v1/me/player/pause", headers=headers)
         if r.status_code == 204 or r.status_code == 200:
-            print("Successfully paused.")
+            print(f"{str(datetime.datetime.now())}: [LOCAL] Successfully paused.")
             writeToArduino("playback started")
         elif r.status_code in [401, 403]:
             print(f"Authorization error: {r.status_code}, {r.text}")
             writeToArduino("authorization error")
         elif r.status_code == 429:
-            print("Rate limit exceeded")
+            print(f"{str(datetime.datetime.now())}: [LOCAL] Rate limit exceeded")
             writeToArduino("rate limit exceeded")
         else:
-            print(f"Playback failed: {r.status_code}, {r.text}")
+            print(f"{str(datetime.datetime.now())}: [LOCAL] Playback failed: {r.status_code}, {r.text}")
             writeToArduino("playback failed")
     except Exception as e:
-        print(f"Error in handlePlay: {e}")
+        print(f"{str(datetime.datetime.now())}: [LOCAL] Error in handlePlay: {e}")
         writeToArduino("error")
 
 def handleSkip(*args):
@@ -202,20 +202,20 @@ def handleSkip(*args):
     try:
         r = requests.post("https://api.spotify.com/v1/me/player/next", headers=headers)
         if r.status_code == 204 or r.status_code == 200:
-            print("Successfully skipped.")
+            print(f"{str(datetime.datetime.now())}: [LOCAL] Successfully skipped.")
             writeToArduino("playback started")
             handleGetSongDuration()
         elif r.status_code in [401, 403]:
-            print(f"Authorization error: {r.status_code}, {r.reason}")
+            print(f"{str(datetime.datetime.now())}: [LOCAL] Authorization error: {r.status_code}, {r.reason}")
             writeToArduino("authorization error")
         elif r.status_code == 429:
-            print("Rate limit exceeded")
+            print(f"{str(datetime.datetime.now())}: [LOCAL] Rate limit exceeded")
             writeToArduino("rate limit exceeded")
         else:
-            print(f"Playback failed: {r.status_code}, {r.reason}")
+            print(f"{str(datetime.datetime.now())}: [LOCAL] Playback failed: {r.status_code}, {r.reason}")
             writeToArduino("playback failed")
     except Exception as e:
-        print(f"Error in handlePlay: {e}")
+        print(f"{str(datetime.datetime.now())}: [LOCAL] Error in handlePlay: {e}")
         writeToArduino("error")
 
 def handleGetSongDuration(*args):
@@ -229,8 +229,8 @@ def handleGetSongDuration(*args):
     item = r.json()['item']
     if (item is None):
         writeToArduino("error")
-    print(f"Duration: {item['duration_ms']}")
-    print(f"Song name: {item['name']}")
+    print(f"{str(datetime.datetime.now())}: [LOCAL] Duration: {item['duration_ms']}")
+    print(f"{str(datetime.datetime.now())}: [LOCAL] Song name: {item['name']}")
     writeToArduino(str({"duration": item["duration_ms"], "name": item["name"]}))
 
 def handleVolume(*args):
