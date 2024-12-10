@@ -8,13 +8,10 @@ void writeToBuf() {
 }
 // Only ever called if writtenTo is true
 JsonDocument readResponse() {
-  Serial.print(serialBuffer);
   JsonDocument doc;
   DeserializationError error = deserializeJson(doc, serialBuffer);
   if (error) {
     Serial.print("Deserialization failed: ");
-    Serial.print(serialBuffer);
-    Serial.print(" :");
     Serial.println(error.c_str());
   }
   memset(serialBuffer, 0, sizeof serialBuffer);
