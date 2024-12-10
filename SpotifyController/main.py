@@ -34,6 +34,7 @@
 import threading, queue, serial
 import datetime 
 import subprocess
+import time
 
 import serial.tools.list_ports
 import requests 
@@ -44,7 +45,7 @@ baudRate = 115200
 arduinoQueue = queue.Queue()
 localQueue = queue.Queue()
 
-refreshToken = "BQB4bsA1dL_OiERr2umC5TldljesJnsZTLNi6zG6ktedXM21gm7DfLT5B8-E15zS1Vk-IJjGI-_T7T_TL0YDQYYRJYQunqYLI749olz6IgUOzpduCvTZN5n9qSEMqwLNUrXKevLteH-18NVMgwIYn6sj5oehv5tV3TShcpsFrjtuj_VAcMCXXwQNiuc"
+refreshToken = "BQDDIYq0eJlFNLqJZOW3jbsHjhWA3qLwTciBKXNhNmN2Cu2_7MpBUdogaO3diH77uTVXTgsYC7n2JG6nPBbPcz0Acl3kwi-QIp2Oz048JvIqNuHrF7ml5YvAjucvonRHtZQSDSCJIm36oVon7K0Q1oS4FBnXxIDxrLCtxujk7tt2QxnLYwTcfxzqQiP5dw"
 tokenType = None
 ttl = None
 
@@ -154,9 +155,9 @@ def handlePlay(*args):
     headers = {"Authorization": f"Bearer {refreshToken}", "Content-Type": "application/x-www-form-urlencoded"}
 
     try:
-        r = requests.put(SPOTIFY_PLAY_ENDPOINT, headers=headers)
-        if r.status_code == 204:
-            print("Playback started successfully")
+        r = requests.put("https://api.spotify.com/v1/me/player/play", headers=headers)
+        if r.status_code == 204 or r.status_code == 200:
+            print("Succesfully started playing.")
             writeToArduino("playback started")
         elif r.status_code in [401, 403]:
             print(f"Authorization error: {r.status_code}, {r.text}")
@@ -177,9 +178,9 @@ def handlePause(*args):
     headers = {"Authorization": f"Bearer {refreshToken}"}
 
     try:
-        r = requests.put(SPOTIFY_PAUSE_ENDPOINT, headers=headers)
-        if r.status_code == 204:
-            print("Playback started successfully")
+        r = requests.put("https://api.spotify.com/v1/me/player/pause", headers=headers)
+        if r.status_code == 204 or r.status_code == 200:
+            print("Successfully paused.")
             writeToArduino("playback started")
         elif r.status_code in [401, 403]:
             print(f"Authorization error: {r.status_code}, {r.text}")
@@ -201,9 +202,10 @@ def handleSkip(*args):
 
     try:
         r = requests.post("https://api.spotify.com/v1/me/player/next", headers=headers)
-        if r.status_code == 204:
-            print("Playback started successfully")
+        if r.status_code == 204 or r.status_code == 200:
+            print("Successfully skipped.")
             writeToArduino("playback started")
+            handleGetSongDuration()
         elif r.status_code in [401, 403]:
             print(f"Authorization error: {r.status_code}, {r.reason}")
             writeToArduino("authorization error")
@@ -220,15 +222,17 @@ def handleSkip(*args):
 def handleGetSongDuration(*args):
     if (refreshToken is None):
         writeToArduino("error")
-    headers = {"Authorization": f"{tokenType} {refreshToken}"}
-    r = requests.get(SPOTIFY_CURRENT_SONG_ENDPOINT, headers=headers)
+    headers = {"Authorization": f"Bearer {refreshToken}"}
+    r = requests.get("https://api.spotify.com/v1/me/player/currently-playing", headers=headers)
     if (r.status_code != 200):
         writeToArduino("error")
-
-    item = r.json()["item"]
+    # print(r.json())
+    item = r.json()['item']
     if (item is None):
         writeToArduino("error")
-    writeToArduino(str(item.duration_ms))
+    print(f"Duration: {item['duration_ms']}")
+    print(f"Song name: {item['name']}")
+    writeToArduino(str(item['duration_ms']))
 
 def handleVolume(*args):
     volume_level = args[0]
@@ -280,7 +284,14 @@ while True:
             break
 print("Arduino Ready")
 # getRefreshToken()
+handleGetSongDuration()
+handlePlay()
+time.sleep(5)
+handlePause()
+time.sleep(5)
 handleSkip()
+# handleGetSongDuration()
+
 
 # --- Now you handle the commands received either from Arduino or stdin
 while True:
