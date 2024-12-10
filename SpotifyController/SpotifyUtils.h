@@ -3,7 +3,7 @@
 
 void setupUtils();
 void updateInputs();
-void displaySongName();
+void displaySongName(String songName);
 void displayProgressBar();
 void updateProgressBar(long mils);
 
