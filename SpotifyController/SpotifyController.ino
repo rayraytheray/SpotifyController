@@ -18,29 +18,33 @@ void setup() {
 
   // Configure watchdog timer 
   uint32_t period_counts = 1000000; // 1 second in microseconds
-  if (!watchdogTimer.begin(TIMER_MODE_PERIODIC, AGT_TIMER, 0, period_counts, 0, TIMER_SOURCE_DIV_8, wdtISR)) {
-    Serial.println("Watchdog Timer configuration failed!");
-    return;
-  }
+  // Serial.print("AGT_HOWMANY: ");
+  // Serial.println(AGT_HOWMANY);
+  // Serial.print("Channel status: ");
+  // Serial.println(agt_used_channel[0]); // Check if channel is actually free
+  // if (!watchdogTimer.begin(TIMER_MODE_PERIODIC, AGT_TIMER, 0, period_counts, 0, TIMER_SOURCE_DIV_8, wdtISR)) {
+  //   Serial.println("Watchdog Timer configuration failed!");
+  //   return;
+  // }
   // Start the timer
-  watchdogTimer.start();
+  // watchdogTimer.start();
 
   // Set up LCD and buttons
   setupUtils();
 
   // set up button pin interrupt
-  pinMode(interruptPin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(interruptPin), handleInterrupt, FALLING);
+  pinMode(playPin, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(playPin), handlePlay, FALLING);
 }
 
 void loop() {
   // Pet watchdog
-  watchdogTimer.stop();
-  watchdogTimer.start();
+  // watchdogTimer.stop();
+  // watchdogTimer.start();
 
-  if (interruptFlag) {
+  if (playFlag) {
     Serial.println("Interrupt triggered!");
-    interruptFlag = false;
+    playFlag = false;
   }
 
   // echo back in uppercase what we received
@@ -57,7 +61,6 @@ void loop() {
   CURRENT_STATE = updateFSM(CURRENT_STATE, millis(), lastButtonPressed);
   delay(10);
 
-    
   int potValue = analogRead(A0); // Read potentiometer value (0-1023)
   Serial.println(potValue);     // Send value to the computer
 }
@@ -81,8 +84,8 @@ state updateFSM(state curState, long mils, int lastButton) {
   return nextState;
 }
 
-void handleInterrupt() {
-  interruptFlag = true;
+void handlePlay() {
+  playFlag = true;
 }
 
 /* ISR when WDT triggers */
