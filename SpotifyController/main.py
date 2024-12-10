@@ -38,13 +38,14 @@ import time
 
 import serial.tools.list_ports
 import requests 
+# import osascript
 import arduino_secrets
 
 baudRate = 115200
 arduinoQueue = queue.Queue()
 localQueue = queue.Queue()
 
-refreshToken = "BQDDIYq0eJlFNLqJZOW3jbsHjhWA3qLwTciBKXNhNmN2Cu2_7MpBUdogaO3diH77uTVXTgsYC7n2JG6nPBbPcz0Acl3kwi-QIp2Oz048JvIqNuHrF7ml5YvAjucvonRHtZQSDSCJIm36oVon7K0Q1oS4FBnXxIDxrLCtxujk7tt2QxnLYwTcfxzqQiP5dw"
+refreshToken = "BQDgnFitkMksVm-f1M8HxZXYpVg2nPYOKTS6U9Ik-hXSaumrNTWPfD4lnm6OMLDerz2A0N7bD-ZuXrTnIccFizTLWZSMyp_MJAi2jNj4Pbm-Knqs3aJBX2MhcDxpJmxVe_K61nS9jqYNfGAsELI3bPfIFPSEUsJdtZDJ5oZfC-bUFDW_E-ig7q7P-qvQCg"
 tokenType = None
 ttl = None
 
@@ -224,6 +225,7 @@ def handleGetSongDuration(*args):
     headers = {"Authorization": f"Bearer {refreshToken}"}
     r = requests.get("https://api.spotify.com/v1/me/player/currently-playing", headers=headers)
     if (r.status_code != 200):
+        print(str(r.status_code) + " " + str(r.reason))
         writeToArduino("error")
     # print(r.json())
     item = r.json()['item']
@@ -257,8 +259,8 @@ messageResponses = {
     "play": handlePlay,
     "pause": handlePause,
     "skip": handleSkip,
-    "getSongDuration": handleGetSongDuration,
-    "volume": handleVolume
+    "getSongDuration": handleGetSongDuration
+    # "volume": handleVolume
 }
 
 def handleArduinoMessage(aMessage):
@@ -284,12 +286,12 @@ while True:
             break
 print("Arduino Ready")
 # getRefreshToken()
-handleGetSongDuration()
-handlePlay()
-time.sleep(5)
-handlePause()
-time.sleep(5)
-handleSkip()
+# handleGetSongDuration()
+# handlePlay()
+# time.sleep(5)
+# handlePause()
+# time.sleep(5)
+# handleSkip()
 # handleGetSongDuration()
 
 

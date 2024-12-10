@@ -8,6 +8,7 @@ void writeToBuf() {
 }
 // Only ever called if writtenTo is true
 JsonDocument readResponse() {
+  Serial.print(serialBuffer);
   JsonDocument doc;
   DeserializationError error = deserializeJson(doc, serialBuffer);
   if (error) {

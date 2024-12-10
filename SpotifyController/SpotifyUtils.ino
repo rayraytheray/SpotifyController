@@ -38,9 +38,7 @@ void setupUtils() {
   displayProgressBar();
 }
 
-void displaySongName() {
-  const String songName = "Dummy Song";
-
+void displaySongName(String songName) {
   // Display the song name on the second row
   lcd.setCursor(0, 1); // Set cursor to the second row
   lcd.print(songName); // Print the dummy song name
