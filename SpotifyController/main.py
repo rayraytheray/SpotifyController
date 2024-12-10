@@ -45,7 +45,7 @@ baudRate = 115200
 arduinoQueue = queue.Queue()
 localQueue = queue.Queue()
 
-refreshToken = "BQCgXZCOuQCbl-8nbJEC_WCgDDg22tHyyVkyytEvyu_iKSgJpkvB4B6qyBjFrESoSeL466J2d1JGHduRdbIG6SNnZI_JSKeWgQk4RMNN9RqFN4DpSBroc9ByxOeapGc6wq2FdyVXZa2X_9gIwo4PqeZEe3YururIi7YJRZk7qzlsBrAkBd1VJOd-a07rHQ"
+refreshToken = "BQDA1C5jiUDFSZe-x43OxTkxMJhi-o8JdtRm1M7G86Rx-43vT2DM82Frrg35afNvmtY8nyE7mOseIgcj7PTYSMWi0Mxo6glyXUN4sCzcpoezmk60Mh3IMm-3T4dUJMWzYY1etBI_EsJAaZ634ehTk9XyC3oZTs1bw6E4YlI02lABEkZRFG_JQREVRlUwzQ"
 tokenType = None
 ttl = None
 
@@ -204,7 +204,6 @@ def handleSkip(*args):
         r = requests.post("https://api.spotify.com/v1/me/player/next", headers=headers)
         if r.status_code == 204 or r.status_code == 200:
             print(f"{str(datetime.datetime.now())}: [LOCAL] Successfully skipped.")
-            writeToArduino(str({"status": r.status_code, "message": "playback started"}))
             handleGetSongDuration()
         elif r.status_code in [401, 403]:
             print(f"{str(datetime.datetime.now())}: [LOCAL] Authorization error: {r.status_code}, {r.reason}")
@@ -220,6 +219,7 @@ def handleSkip(*args):
         writeToArduino(str({"message": "request error"}))
 
 def restartSong(*args):
+    print("restartSong called")
     if (refreshToken is None):
         writeToArduino(str({"status": 401, "message": "authorization error"}))
     headers = {"Authorization": f"Bearer {refreshToken}"}
@@ -283,11 +283,12 @@ messageResponses = {
 def handleArduinoMessage(aMessage):
     print(str(datetime.datetime.now()) + ": [ARDUINO] " + aMessage)
     tokens = aMessage.strip().split()
-    request = tokens[0]
-    args = tokens[1:]
-    if (request in messageResponses):
-        messageResponses[request](*args)
-
+    if (len(tokens) > 0):
+        request = tokens[0]
+        args = tokens[1:]
+        if (request in messageResponses):
+            messageResponses[request](*args)
+    
 # ---- MAIN CODE -----
 
 configureArduino()                                      # will reboot AVR based Arduinos
@@ -303,9 +304,10 @@ while True:
             break
 print("Arduino Ready")
 # getRefreshToken()
-# handleGetSongDuration()
+handleGetSongDuration()
 restartSong()
 handlePause()
+
 
 
 # --- Now you handle the commands received either from Arduino or stdin

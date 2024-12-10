@@ -47,27 +47,25 @@ void setup() {
     Serial.println("Error initializing watchdog");
     while(1){}
   }
-
-  //get initial song info
-  Serial.println("getSongDuration");
 }
 
 void loop() {
   // Pet watchdog
   WDT.refresh();
-
+  
   // echo back in uppercase what we received
-  JsonDocument doc;
   if (Serial.available()) {
     writeToBuf();
   } else {
     if (writtenTo) {
-      doc = readResponse();
+      JsonDocument doc = readResponse();
+      parseResponse(doc);
+      Serial.println(songName);
     }
   }
 
   static state CURRENT_STATE = sWAIT_FOR_SONG;
-  CURRENT_STATE = updateFSM(CURRENT_STATE, millis(), lastButtonPressed, doc);
+  CURRENT_STATE = updateFSM(CURRENT_STATE, millis(), lastButtonPressed);
   delay(10);
 
   int potValue = analogRead(A0); // Read potentiometer value (0-1023)
@@ -76,20 +74,18 @@ void loop() {
 
 }
 
-state updateFSM(state curState, long mils, int lastButton, JsonDocument doc) {
+state updateFSM(state curState, long mils, int lastButton) {
   state nextState = curState;
   switch(curState) {
   case sWAIT_FOR_SONG:
-    if(!doc.isNull()) {
-      songName = doc["name"].as<String>();
-      songDuration = doc["duration"].as<int>();
-      nextState = sPAUSED;
-    }
+    nextState = sPAUSED;
     break;
   case sPAUSED:
     displaySongName(songName);
     if (skipFlag) {
       skipFlag = false;
+      Serial.println("skip");
+      nextState = sPLAYING;
     }
     else if (playFlag) {
       Serial.println("play");
@@ -102,6 +98,7 @@ state updateFSM(state curState, long mils, int lastButton, JsonDocument doc) {
     updateProgressBar(mils);
     if (skipFlag) {
       skipFlag = false;
+      Serial.println("skip");
     }
     else if (playFlag) {
       Serial.println("pause");
@@ -131,5 +128,22 @@ void handleSkip() {
   if (currentTime - lastSkipPress > DEBOUNCE_TIME) {
       skipFlag = true;
       lastSkipPress = currentTime;
+  }
+}
+
+void parseResponse(JsonDocument doc) {
+  if(doc.isNull()) {
+    return;
+  }
+  const char* message = doc["message"];
+  if(message) {
+    Serial.println(message);
+  }
+  const char* name = doc["name"];
+  Serial.println(name);
+  if(name) {
+    Serial.println("updating values");
+    songName = name;
+    songDuration = doc["duration"].as<int>();
   }
 }
