@@ -1,11 +1,13 @@
 #include "SpotifyController.h"
 #include "SpotifyUtils.h"
 #include "io_utils.h"
-#include <FspTimer.h>
+
+#define TIMER_FREQ_HZ  (64000000)  // Base clock frequency for GPT
+#define WDT_TIMEOUT_MS 1000        // Desired timeout in milliseconds
 
 FspTimer watchdogTimer;
-const int playPin = 2;  // play/pause button
-const int skipPin = 3;  // skip button
+const int playPin = 10;  // play/pause button
+const int skipPin = 11;  // skip button
 volatile bool playFlag = false;
 volatile bool skipFlag = false;
 
@@ -16,31 +18,38 @@ void setup() {
 
   Serial.println("OK"); // let the python code know we are ready
 
-  // Configure watchdog timer 
-  uint32_t period_counts = 1000000; // 1 second in microseconds
-  // Serial.print("AGT_HOWMANY: ");
-  // Serial.println(AGT_HOWMANY);
-  // Serial.print("Channel status: ");
-  // Serial.println(agt_used_channel[0]); // Check if channel is actually free
-  // if (!watchdogTimer.begin(TIMER_MODE_PERIODIC, AGT_TIMER, 0, period_counts, 0, TIMER_SOURCE_DIV_8, wdtISR)) {
-  //   Serial.println("Watchdog Timer configuration failed!");
-  //   return;
-  // }
-  // Start the timer
-  // watchdogTimer.start();
-
   // Set up LCD and buttons
+  Serial.println("Setting up utils");
   setupUtils();
 
   // set up button pin interrupt
+  Serial.println("Setting up interrupts");
   pinMode(playPin, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(playPin), handlePlay, FALLING);
+
+  // Configure watchdog timer 
+  uint32_t base_freq = TIMER_FREQ_HZ >> 3;  // Divide by 8 because of TIMER_SOURCE_DIV_8
+  uint32_t period_counts = (base_freq / 1000) * WDT_TIMEOUT_MS;
+  uint8_t timer_type = 0;  // Variable to hold the timer type
+
+  int8_t channel = watchdogTimer.get_available_timer(timer_type);
+  if (!watchdogTimer.begin(TIMER_MODE_PERIODIC, timer_type, channel, period_counts, 0, TIMER_SOURCE_DIV_8, wdtISR, nullptr)) {
+    Serial.println("Watchdog Timer configuration failed!");
+    return;
+  }
+  // Start the timer
+  watchdogTimer.setup_overflow_irq();
+  if(!watchdogTimer.open()) {
+    Serial.println("Failed to open watchdog timer");
+  }
+  if(!watchdogTimer.start()) {
+    Serial.println("Failed to start watchdog timer");
+  }
 }
 
 void loop() {
   // Pet watchdog
-  // watchdogTimer.stop();
-  // watchdogTimer.start();
+  watchdogTimer.reset();
 
   if (playFlag) {
     Serial.println("Interrupt triggered!");
@@ -59,19 +68,20 @@ void loop() {
   static state CURRENT_STATE = sWAIT_FOR_SONG;
   updateInputs();
   CURRENT_STATE = updateFSM(CURRENT_STATE, millis(), lastButtonPressed);
-  delay(10);
 
   int potValue = analogRead(A0); // Read potentiometer value (0-1023)
+<<<<<<< HEAD
   Serial.print("volume ");     // Send value to the computer
   Serial.println(potValue);
   
+=======
+>>>>>>> d0d67e015470f3c25a975dd15e4783f4a68f5ec1
 }
 
 state updateFSM(state curState, long mils, int lastButton) {
   state nextState;
   switch(curState) {
   case sWAIT_FOR_SONG:
-    displayProgressBar();
     break;
   case sPAUSED:
     displaySongName();
@@ -79,6 +89,7 @@ state updateFSM(state curState, long mils, int lastButton) {
   case sPLAYING:
     displaySongName();
     updateProgressBar(mils);
+    watchdogTimer.reset();
     break;
   case sSKIPPING:
     break;
@@ -92,6 +103,5 @@ void handlePlay() {
 
 /* ISR when WDT triggers */
 void wdtISR(timer_callback_args_t *arg) {
-  Serial.println("System failure detected!");
-  while(true);
+  Serial.println("Error: System failure");
 }

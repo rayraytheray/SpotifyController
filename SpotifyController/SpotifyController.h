@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include <FspTimer.h>
 
 #define SPOTIFY_HOST "api.spotify.com"
 #define SPOTIFY_ACCOUNTS_HOST "accounts.spotify.com"
