@@ -28,10 +28,14 @@ void setupUtils() {
 
   // Setup LCD
   lcd.begin(16,2);
+  lcd.clear();
   lastUpdate = millis();
 
   //Reset lcd cursor to beginning of progress bar
   lcd.setCursor(0, 0);
+
+  // draw empty progress bar
+  displayProgressBar();
 }
 
 // //Read in button presses
@@ -94,16 +98,3 @@ void updateProgressBar(long mils) {
     lastUpdate = mils;
   }
 }
-
-// void displayWaitingForWifi() {
-//   lcd.setCursor(0, 0);
-//   lcd.print("Waiting for WiFi");
-// }
-// void updateProgressBar(long mils) {
-//   //Add block to progress bar every timeBetweenUpdate
-//   if(mils - lastUpdate >= timeBetweenUpdate && barsFilled < 16) {
-//     lcd.write(byte(255));
-//     barsFilled++;
-//     lastUpdate = mils;
-//   }
-// }
