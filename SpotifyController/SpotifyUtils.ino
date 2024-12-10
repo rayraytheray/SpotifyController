@@ -16,7 +16,7 @@ unsigned long lastDebounceTime = 0;
 const unsigned long debounceDelay = 50;  // Adjust if needed
 
 //LCD Variables
-const int rs = 0, en = 1, d4 = 2, d5 = 3, d6 = 4, d7 = 5;
+const int rs = 0, en = 1, d4 = 10, d5 = 11, d6 = 4, d7 = 5;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 long lastUpdate;
 int timeBetweenUpdate = 1000;
@@ -36,41 +36,6 @@ void setupUtils() {
 
   // draw empty progress bar
   displayProgressBar();
-}
-
-// //Read in button presses
-void updateInputs() {
-  // Read current states
-  int playPauseReading = digitalRead(PLAY_PAUSE_PIN);
-  int skipReading = digitalRead(SKIP_PIN);
-
-  // Check for any button state change
-  if (playPauseReading != lastPlayPauseState || skipReading != lastSkipState) {
-    lastDebounceTime = millis();
-  }
-
-  // If enough time has passed, process the button presses
-  if ((millis() - lastDebounceTime) > debounceDelay) {
-    // Check play/pause button
-    if (playPauseReading != playPauseState) {
-      playPauseState = playPauseReading;
-      if (playPauseState == HIGH) {
-        lastButtonPressed = PLAY_PAUSE;
-      }
-    }
-    
-    // Check skip button
-    if (skipReading != skipState) {
-      skipState = skipReading;
-      if (skipState == HIGH) {
-        lastButtonPressed = SKIP;
-      }
-    }
-  }
-
-  // Save states for next iteration
-  lastPlayPauseState = playPauseReading;
-  lastSkipState = skipReading;
 }
 
 void displaySongName() {
