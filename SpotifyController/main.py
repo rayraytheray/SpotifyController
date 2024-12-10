@@ -42,7 +42,7 @@ baudRate = 115200
 arduinoQueue = queue.Queue()
 localQueue = queue.Queue()
 
-refreshToken = None
+refreshToken = "BQBDS0wsdEDgMWLnpHgO2fa3rLzFHiCca2lWRSqNo75sfMd4yBT3U_9F16NPlw3j_2MnqTYUR76a2JPi5A5j2eGT8f8Z93eQPct_TtHXRs5rOHvpM41_Ja5XJqzKcNlsS4g2lDbu8ZtKgj1f28C3YKpdCo9bWjsSM1TvPejGdlKiFp08Wa7Og4ao76c"
 tokenType = None
 ttl = None
 
@@ -123,16 +123,16 @@ def writeToArduino(message):
     arduino.write(message.encode("utf-8"))
     arduino.write(bytes("\n", encoding="utf-8"))
 
-def getRefreshToken():
-    payload = f"grant_type=client_credentials&client_id={arduino_secrets.CLIENT_ID}&client_secret={arduino_secrets.CLIENT_SECRET}"
-    headers = {"Content-Type": "application/x-www-form-urlencoded"}
-    r = requests.post(SPOTIFY_TOKEN_ENDPOINT, data=payload, headers=headers)
-    if (r.status_code != 200):
-        writeToArduino("error")
-    refreshToken = r.json()["access_token"]
-    tokenType = r.json()["token_type"]
-    ttl = r.json()["expires_in"]
-    print(f"Refresh Token: {refreshToken}")
+# def getRefreshToken():
+#     payload = f"grant_type=client_credentials&client_id={arduino_secrets.CLIENT_ID}&client_secret={arduino_secrets.CLIENT_SECRET}"
+#     headers = {"Content-Type": "application/x-www-form-urlencoded"}
+#     r = requests.post(SPOTIFY_TOKEN_ENDPOINT, data=payload, headers=headers)
+#     if (r.status_code != 200):
+#         writeToArduino("error")
+#     refreshToken = r.json()["access_token"]
+#     tokenType = r.json()["token_type"]
+#     ttl = r.json()["expires_in"]
+#     print(f"Refresh Token: {refreshToken}")
     
     # Most likely the Arduino system won't need the refresh token, since only the computer is running requests
     # arduino.write(str(r.json()).encode("utf-8"))
@@ -140,10 +140,11 @@ def getRefreshToken():
 
 # ---- CALLBACKS UPON MESSAGES -----
 
-# def handleLocalMessage(aMessage):
-#     print("[LOCAL]: " + aMessage)
-#     arduino.write(aMessage.encode('utf-8'))
-#     arduino.write(bytes('\n', encoding='utf-8'))
+def handleLocalMessage(aMessage):
+    print("[LOCAL]: " + aMessage)
+    arduino.write(aMessage.encode('utf-8'))
+    arduino.write(bytes('\n', encoding='utf-8'))
+    
 def handlePlay():
     # global refreshToken, tokenType
     # print(f"Using refreshToken: {refreshToken}")
@@ -198,18 +199,18 @@ def handleSkip(*args):
     headers = {"Authorization": f"Bearer {refreshToken}"}
 
     try:
-        r = requests.post("https://api.spotify.com/v1/me/player/skip", headers=headers)
+        r = requests.post("https://api.spotify.com/v1/me/player/next", headers=headers)
         if r.status_code == 204:
             print("Playback started successfully")
             writeToArduino("playback started")
         elif r.status_code in [401, 403]:
-            print(f"Authorization error: {r.status_code}, {r.text}")
+            print(f"Authorization error: {r.status_code}, {r.reason}")
             writeToArduino("authorization error")
         elif r.status_code == 429:
             print("Rate limit exceeded")
             writeToArduino("rate limit exceeded")
         else:
-            print(f"Playback failed: {r.status_code}, {r.text}")
+            print(f"Playback failed: {r.status_code}, {r.reason}")
             writeToArduino("playback failed")
     except Exception as e:
         print(f"Error in handlePlay: {e}")
@@ -260,8 +261,8 @@ while True:
         if arduinoQueue.get() == "OK":
             break
 print("Arduino Ready")
-getRefreshToken()
-handlePause()
+# getRefreshToken()
+handleSkip()
 
 # --- Now you handle the commands received either from Arduino or stdin
 while True:
