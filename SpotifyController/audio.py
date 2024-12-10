@@ -2,7 +2,7 @@ import serial
 import subprocess
 
 # Set up Arduino serial port
-arduino = serial.Serial('/dev/cu.usbmodemF412FA9F08242', 115200)  # Match baud rate with Arduino
+arduino = serial.Serial('COM6', 115200)  # Match baud rate with Arduino
 
 def set_volume(volume_level):
     # Convert volume to a percentage (0 to 100)

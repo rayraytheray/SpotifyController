@@ -38,7 +38,7 @@ import time
 
 import serial.tools.list_ports
 import requests 
-import osascript
+# import osascript
 import arduino_secrets
 
 baudRate = 115200
@@ -242,6 +242,7 @@ def handleGetSongDuration(*args):
     headers = {"Authorization": f"Bearer {refreshToken}"}
     r = requests.get("https://api.spotify.com/v1/me/player/currently-playing", headers=headers)
     if (r.status_code != 200):
+        print(str(r.status_code) + " " + str(r.reason))
         writeToArduino("error")
     # print(r.json())
     item = r.json()['item']
@@ -249,7 +250,7 @@ def handleGetSongDuration(*args):
         writeToArduino("error")
     print(f"Duration: {item['duration_ms']}")
     print(f"Song name: {item['name']}")
-    writeToArduino(str(item['duration_ms']))
+    writeToArduino(str({"duration": item["duration_ms"], "name": item["name"]}))
 
 def handleVolume(*args):
     volume_level = args[0]
@@ -275,8 +276,8 @@ messageResponses = {
     "play": handlePlay,
     "pause": handlePause,
     "skip": handleSkip,
-    "getSongDuration": handleGetSongDuration,
-    "volume": handleVolume
+    "getSongDuration": handleGetSongDuration
+    # "volume": handleVolume
 }
 
 def handleArduinoMessage(aMessage):
@@ -284,7 +285,8 @@ def handleArduinoMessage(aMessage):
     tokens = aMessage.strip().split()
     request = tokens[0]
     args = tokens[1:]
-    messageResponses[request](*args)
+    if (request in messageResponses):
+        messageResponses[request](*args)
 
 # ---- MAIN CODE -----
 
