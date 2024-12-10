@@ -45,7 +45,7 @@ baudRate = 115200
 arduinoQueue = queue.Queue()
 localQueue = queue.Queue()
 
-refreshToken = "BQDDIYq0eJlFNLqJZOW3jbsHjhWA3qLwTciBKXNhNmN2Cu2_7MpBUdogaO3diH77uTVXTgsYC7n2JG6nPBbPcz0Acl3kwi-QIp2Oz048JvIqNuHrF7ml5YvAjucvonRHtZQSDSCJIm36oVon7K0Q1oS4FBnXxIDxrLCtxujk7tt2QxnLYwTcfxzqQiP5dw"
+refreshToken = "BQCgXZCOuQCbl-8nbJEC_WCgDDg22tHyyVkyytEvyu_iKSgJpkvB4B6qyBjFrESoSeL466J2d1JGHduRdbIG6SNnZI_JSKeWgQk4RMNN9RqFN4DpSBroc9ByxOeapGc6wq2FdyVXZa2X_9gIwo4PqeZEe3YururIi7YJRZk7qzlsBrAkBd1VJOd-a07rHQ"
 tokenType = None
 ttl = None
 
@@ -219,6 +219,23 @@ def handleSkip(*args):
         print(f"Error in handlePlay: {e}")
         writeToArduino("error")
 
+def restartSong(*args):
+    if (refreshToken is None):
+        writeToArduino("error")
+    headers = {"Authorization": f"Bearer {refreshToken}"}
+    r = requests.put("https://api.spotify.com/v1/me/player/seek?position_ms=0", headers=headers)
+    if (r.status_code != 204):
+        writeToArduino("error")
+    elif r.status_code in [401, 403]:
+            print(f"Authorization error: {r.status_code}, {r.reason}")
+            writeToArduino("authorization error")
+    elif r.status_code == 429:
+        print("Rate limit exceeded")
+        writeToArduino("rate limit exceeded")
+    else:
+        print(f"Playback failed: {r.status_code}, {r.reason}")
+        writeToArduino("playback failed")
+
 def handleGetSongDuration(*args):
     if (refreshToken is None):
         writeToArduino("error")
@@ -285,11 +302,8 @@ while True:
 print("Arduino Ready")
 # getRefreshToken()
 handleGetSongDuration()
-handlePlay()
-time.sleep(5)
+restartSong()
 handlePause()
-time.sleep(5)
-handleSkip()
 # handleGetSongDuration()
 
 
