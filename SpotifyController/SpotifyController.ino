@@ -66,7 +66,7 @@ void loop() {
     }
   }
 
-  static state CURRENT_STATE = sPAUSED;
+  static state CURRENT_STATE = sWAIT_FOR_SONG;
   CURRENT_STATE = updateFSM(CURRENT_STATE, millis(), lastButtonPressed, doc);
   delay(10);
 
