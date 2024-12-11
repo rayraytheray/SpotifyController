@@ -39,15 +39,19 @@ void setupUtils() {
 }
 
 void displaySongName(String songName) {
+  //truncate song name to 16 characters 
+  songName = songName.substring(0, 16);
+
   // Display the song name on the second row
   lcd.setCursor(0, 1); // Set cursor to the second row
-  lcd.print(songName); // Print the dummy song name
-  lcd.setCursor(0, 0); //Reset cursor to first row for progress bar
+  lcd.print("                "); //clear line by printing spaces
+  lcd.setCursor(0, 1); // reset to start of row
+  lcd.print(songName); // print the song name
+  lcd.setCursor(0, 0); //reset cursor to first row for progress bar
 }
 
 void displayProgressBar() {
   // Write empty progress bar 
-  lcd.setCursor(0, 0);
   for(int i=0; i<16; i++) {
     lcd.write("-");
   }

@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <WDT.h>
+#include "SongTimer.h"
 
 #define SPOTIFY_HOST "api.spotify.com"
 #define SPOTIFY_ACCOUNTS_HOST "accounts.spotify.com"
@@ -30,7 +31,6 @@ typedef enum {
   sWAIT_FOR_SONG = 1,
   sPAUSED = 2,
   sPLAYING = 3,
-  sSKIPPING = 4,
 } state;
 
 //Buttons Enum

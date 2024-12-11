@@ -3,20 +3,22 @@
 #include "io_utils.h"
 
 String songName = "Example Song";
-int songDuration = 0;
+long songDuration = 0;
 
 // Button setup
-const unsigned long DEBOUNCE_TIME = 500;  // 200ms debounce
+const unsigned long DEBOUNCE_TIME = 500; // debounce time in ms
 volatile unsigned long lastPlayPress = 0;
 volatile unsigned long lastSkipPress = 0;
 const int playPin = 2;  // play/pause button
 const int skipPin = 3;  // skip button
-volatile bool playFlag = false;
-volatile bool skipFlag = false;
+volatile bool playFlag = false; //signal to fsm that button was pressed
+volatile bool skipFlag = false; //signal to fsm that button was pressed
 
 // Watchdog timer
-const long wdtInterval = 2684;
-unsigned long wdtMillis = 0;
+const long wdtInterval = 2684; // wdt interval in ms
+
+// Song timer 
+SongTimer songTimer;
 
 void setup() {
   // Set up serial
@@ -71,47 +73,51 @@ void loop() {
   int potValue = analogRead(A0); // Read potentiometer value (0-1023)
   // Serial.print("volume ");     // Send value to the computer
   // Serial.println(potValue);
-
 }
 
 state updateFSM(state curState, long mils, int lastButton) {
   state nextState = curState;
   switch(curState) {
   case sWAIT_FOR_SONG:
-    nextState = sPAUSED;
-    break;
-  case sPAUSED:
-    displaySongName(songName);
-    if (skipFlag) {
-      skipFlag = false;
-      Serial.println("skip");
-      nextState = sPLAYING;
-    }
-    else if (playFlag) {
-      Serial.println("play");
-      playFlag = false;
-      nextState = sPLAYING;
-    }
-    break;
-  case sPLAYING:
-    displaySongName(songName);
-    updateProgressBar(mils);
-    if (skipFlag) {
-      skipFlag = false;
-      Serial.println("skip");
-    }
-    else if (playFlag) {
-      Serial.println("pause");
-      playFlag = false;
+    if (songName != "Example Song") {
       nextState = sPAUSED;
     }
     break;
-  case sSKIPPING:
+  case sPAUSED:
+    if (skipFlag) { //if skip was pressed
+      skipFlag = false;
+      Serial.println("skip");
+      nextState = sPLAYING;
+    }
+    else if (playFlag) { //if pause was pressed
+      Serial.println("play");
+      playFlag = false;
+      nextState = sPLAYING;
+      songTimer.start();
+    }
+    break;
+  case sPLAYING:
+    updateProgressBar(mils);
+    //if the song has reached the end, request new song info from API
+    if(songTimer.getElapsedTime() >= (songDuration + 1000)) { //1 second of delay to be safe
+      songTimer.reset();
+      Serial.println("getSongDuration");
+    }
+    else if (skipFlag) { //if skip was pressed
+      skipFlag = false;
+      Serial.println("skip");
+    }
+    else if (playFlag) { //if pause was pressed 
+      Serial.println("pause");
+      playFlag = false;
+      nextState = sPAUSED;
+      songTimer.stop();
+    }
     break;
   default: 
     nextState = sWAIT_FOR_SONG;
+    break;
   }
-  // Serial.println(nextState);
   return nextState;
 }
 
@@ -140,10 +146,9 @@ void parseResponse(JsonDocument doc) {
     Serial.println(message);
   }
   const char* name = doc["name"];
-  Serial.println(name);
   if(name) {
-    Serial.println("updating values");
     songName = name;
-    songDuration = doc["duration"].as<int>();
+    songDuration = doc["duration"].as<long>();
+    displaySongName(songName);
   }
 }
