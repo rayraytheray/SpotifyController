@@ -3,7 +3,7 @@
 #include "io_utils.h"
 
 String songName = "Example Song";
-long songDuration = 0;
+unsigned long songDuration = 0;
 
 // Button setup
 const unsigned long DEBOUNCE_TIME = 500; // debounce time in ms
@@ -67,7 +67,7 @@ void loop() {
   }
 
   static state CURRENT_STATE = sWAIT_FOR_SONG;
-  CURRENT_STATE = updateFSM(CURRENT_STATE, millis(), lastButtonPressed);
+  CURRENT_STATE = updateFSM(CURRENT_STATE, lastButtonPressed);
   delay(10);
 
   int potValue = analogRead(A0); // Read potentiometer value (0-1023)
@@ -75,7 +75,7 @@ void loop() {
   // Serial.println(potValue);
 }
 
-state updateFSM(state curState, long mils, int lastButton) {
+state updateFSM(state curState, int lastButton) {
   state nextState = curState;
   switch(curState) {
   case sWAIT_FOR_SONG:
@@ -88,6 +88,7 @@ state updateFSM(state curState, long mils, int lastButton) {
       skipFlag = false;
       Serial.println("skip");
       nextState = sPLAYING;
+      songTimer.reset();
     }
     else if (playFlag) { //if pause was pressed
       Serial.println("play");
@@ -96,16 +97,18 @@ state updateFSM(state curState, long mils, int lastButton) {
       songTimer.start();
     }
     break;
-  case sPLAYING:
-    updateProgressBar(mils);
+  case sPLAYING: {
+    unsigned long song_progress = songTimer.getElapsedTime();
+    updateProgressBar(song_progress);
     //if the song has reached the end, request new song info from API
-    if(songTimer.getElapsedTime() >= (songDuration + 1000)) { //1 second of delay to be safe
+    if(song_progress >= (songDuration + 1000)) { //1 second of delay to be safe
       songTimer.reset();
       Serial.println("getSongDuration");
     }
     else if (skipFlag) { //if skip was pressed
       skipFlag = false;
       Serial.println("skip");
+      songTimer.reset();
     }
     else if (playFlag) { //if pause was pressed 
       Serial.println("pause");
@@ -114,6 +117,7 @@ state updateFSM(state curState, long mils, int lastButton) {
       songTimer.stop();
     }
     break;
+  }
   default: 
     nextState = sWAIT_FOR_SONG;
     break;
@@ -148,7 +152,7 @@ void parseResponse(JsonDocument doc) {
   const char* name = doc["name"];
   if(name) {
     songName = name;
-    songDuration = doc["duration"].as<long>();
+    songDuration = doc["duration"].as<unsigned long>();
     displaySongName(songName);
   }
 }
