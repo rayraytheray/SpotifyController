@@ -4,7 +4,7 @@
 #include "SpotifyController.h"
 
 // Input state structure
-struct {
+typedef struct {
     int lastButton;
     String currentSong;
     unsigned long songElapsed;
