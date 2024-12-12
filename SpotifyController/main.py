@@ -45,7 +45,7 @@ baudRate = 115200
 arduinoQueue = queue.Queue()
 localQueue = queue.Queue()
 
-refreshToken = "BQDOgxoWl8EMW15HQJhCPZjSinCkddHqc0yrT9C8dZEp81ijm-K96bdoD9dMldevRD0DPVKf96PklytV9Qm6jHvD5imsk3PJv5JKAhWFOo_GSCGRN1JeHBLZz-JQe9dXm-9POAzX4aZFLTolQ-vaiTlyHxLILz1vXppfKyyq5H9hatSbIU9nGXLeeme0pw"
+refreshToken = "BQBGq8FgVjGPrzUI5H3AhEN7zg7w0dGptExFHI8fryN9uGEt7nL-athpGXoXeeNA4cYpK-tM_EOAoTvtLBKrCxhXZ3ZsLq6gWkQEDCPkkJ5Cf0Wa50iwmxxx1vmyprvLpM_y4QAvO5QKHv98xUJCq5pP_qFR3QFgi3ReK6kXpMO0zQxhMUqF70ilyOdF8Q"
 tokenType = None
 ttl = None
 
