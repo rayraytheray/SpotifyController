@@ -65,14 +65,6 @@ void updateProgressBar(long mils) {
   }
 }
 
-// void fillProgressBar(long mils) {
-//   int numBars = mils / timeBetweenUpdate;
-//   for(int i = 0; i < numBars; i++) {
-//     lcd.write(byte(255));
-//   }
-//   barsFilled = numBars;
-// }
-
 void setTimeBetweenUpdate(long mils) {
   timeBetweenUpdate = mils;
 }
