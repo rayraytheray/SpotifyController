@@ -41,6 +41,11 @@ import requests
 # import osascript
 import arduino_secrets
 
+import audio
+arduino_port = "/dev/cu.usbmodemF412FA9F08242"  
+audio_controller = audio.start_audio_controller(arduino_port)
+
+
 baudRate = 115200
 arduinoQueue = queue.Queue()
 localQueue = queue.Queue()
@@ -292,30 +297,55 @@ def handleArduinoMessage(aMessage):
             messageResponses[request](*args)
     
 # ---- MAIN CODE -----
+# ---- MAIN CODE -----
 
-configureArduino()                                      # will reboot AVR based Arduinos
-# configureUserInput()                                    # handle stdin 
+try:
+    configureArduino()  
+    print("Waiting for Arduino")
 
-print("Waiting for Arduino")
+    while True:
+        if not arduinoQueue.empty():
+            if arduinoQueue.get() == "OK":
+                break
+    print("Arduino Ready")
 
-# --- A good practice would be to wait for a know message from the Arduino
-# for example at the end of the setup() the Arduino could send "OK"
-while True:
-    if not arduinoQueue.empty():
-        if arduinoQueue.get() == "OK":
-            break
-print("Arduino Ready")
-# getRefreshToken()
-handleGetSongInfo()
-restartSong()
-handlePause()
+    handleGetSongInfo()
+    restartSong()
+    handlePause()
+
+    while True:
+        if not arduinoQueue.empty():
+            handleArduinoMessage(arduinoQueue.get())
+
+finally:
+    print("Stopping audio controller...")
+    audio_controller.stop()
+    print("Audio controller stopped.")
+# ---- MAIN CODE -----
+
+# configureArduino()                                      # will reboot AVR based Arduinos
+# # configureUserInput()                                    # handle stdin 
+
+# print("Waiting for Arduino")
+
+# # --- A good practice would be to wait for a know message from the Arduino
+# # for example at the end of the setup() the Arduino could send "OK"
+# while True:
+#     if not arduinoQueue.empty():
+#         if arduinoQueue.get() == "OK":
+#             break
+# print("Arduino Ready")
+# # getRefreshToken()
+# handleGetSongInfo()
+# restartSong()
+# handlePause()
 
 
 
-# --- Now you handle the commands received either from Arduino or stdin
-while True:
-    if not arduinoQueue.empty():
-        handleArduinoMessage(arduinoQueue.get())
+# # --- Now you handle the commands received either from Arduino or stdin
+# while True:
+#     if not arduinoQueue.empty():
+#         handleArduinoMessage(arduinoQueue.get())
 
-    # if not localQueue.empty():
-    #     handleLocalMessage(localQueue.get())
+#     # if not localQueue.empty():
+#     #     handleLocalMessage(localQueue.get())
