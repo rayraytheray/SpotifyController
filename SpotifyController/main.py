@@ -45,7 +45,7 @@ baudRate = 115200
 arduinoQueue = queue.Queue()
 localQueue = queue.Queue()
 
-refreshToken = "BQDA1C5jiUDFSZe-x43OxTkxMJhi-o8JdtRm1M7G86Rx-43vT2DM82Frrg35afNvmtY8nyE7mOseIgcj7PTYSMWi0Mxo6glyXUN4sCzcpoezmk60Mh3IMm-3T4dUJMWzYY1etBI_EsJAaZ634ehTk9XyC3oZTs1bw6E4YlI02lABEkZRFG_JQREVRlUwzQ"
+refreshToken = "BQDOgxoWl8EMW15HQJhCPZjSinCkddHqc0yrT9C8dZEp81ijm-K96bdoD9dMldevRD0DPVKf96PklytV9Qm6jHvD5imsk3PJv5JKAhWFOo_GSCGRN1JeHBLZz-JQe9dXm-9POAzX4aZFLTolQ-vaiTlyHxLILz1vXppfKyyq5H9hatSbIU9nGXLeeme0pw"
 tokenType = None
 ttl = None
 
@@ -204,7 +204,7 @@ def handleSkip(*args):
         r = requests.post("https://api.spotify.com/v1/me/player/next", headers=headers)
         if r.status_code == 204 or r.status_code == 200:
             print(f"{str(datetime.datetime.now())}: [LOCAL] Successfully skipped.")
-            handleGetSongDuration()
+            handleGetSongInfo()
         elif r.status_code in [401, 403]:
             print(f"{str(datetime.datetime.now())}: [LOCAL] Authorization error: {r.status_code}, {r.reason}")
             writeToArduino(str({"status": r.status_code, "message": "authorization error"}))
@@ -236,7 +236,7 @@ def restartSong(*args):
         print(f"Playback failed: {r.status_code}, {r.reason}")
         writeToArduino(str({"status": r.status_code, "message": "playback failed"}))
 
-def handleGetSongDuration(*args):
+def handleGetSongInfo(*args):
     if (refreshToken is None):
         writeToArduino(str({"status": 401, "message": "authorization error"}))
     headers = {"Authorization": f"Bearer {refreshToken}"}
@@ -246,11 +246,13 @@ def handleGetSongDuration(*args):
         writeToArduino(str({"status": r.status_code, "message": "error"}))
     # print(r.json())
     item = r.json()['item']
+    progress_ms = r.json()['progress_ms']
     if (item is None):
         writeToArduino(str({"message": "empty item"}))
     print(f"{str(datetime.datetime.now())}: [LOCAL] Duration: {item['duration_ms']}")
     print(f"{str(datetime.datetime.now())}: [LOCAL] Song name: {item['name']}")
-    writeToArduino(str({"duration": item["duration_ms"], "name": item["name"]}))
+    print(f"{str(datetime.datetime.now())}: [LOCAL] Song progress: {progress_ms}")
+    writeToArduino(str({"duration": item["duration_ms"], "name": item["name"], "progress": progress_ms}))
 
 def handleVolume(*args):
     volume_level = args[0]
@@ -276,7 +278,7 @@ messageResponses = {
     "play": handlePlay,
     "pause": handlePause,
     "skip": handleSkip,
-    "getSongDuration": handleGetSongDuration
+    "getSongInfo": handleGetSongInfo
     # "volume": handleVolume
 }
 
@@ -304,7 +306,7 @@ while True:
             break
 print("Arduino Ready")
 # getRefreshToken()
-handleGetSongDuration()
+handleGetSongInfo()
 restartSong()
 handlePause()
 

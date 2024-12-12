@@ -103,7 +103,7 @@ state updateFSM(state curState, int lastButton) {
     //if the song has reached the end, request new song info from API
     if(song_progress >= (songDuration + 1000)) { //1 second of delay to be safe
       songTimer.reset();
-      Serial.println("getSongDuration");
+      Serial.println("getSongInfo");
     }
     else if (skipFlag) { //if skip was pressed
       skipFlag = false;
