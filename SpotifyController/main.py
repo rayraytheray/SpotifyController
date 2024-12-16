@@ -45,7 +45,7 @@ baudRate = 115200
 arduinoQueue = queue.Queue()
 localQueue = queue.Queue()
 
-refreshToken = "BQCgXZCOuQCbl-8nbJEC_WCgDDg22tHyyVkyytEvyu_iKSgJpkvB4B6qyBjFrESoSeL466J2d1JGHduRdbIG6SNnZI_JSKeWgQk4RMNN9RqFN4DpSBroc9ByxOeapGc6wq2FdyVXZa2X_9gIwo4PqeZEe3YururIi7YJRZk7qzlsBrAkBd1VJOd-a07rHQ"
+refreshToken = "BQDPfzkqYvmnwUZYBnFxO5MrMWBtU_eXY0OnnRsbi0myHaLI_OOleRdzqYBF2DJXoGBkiUhhZ9PHFIuoJdTBbEmb8W-FBcEL3oORGqiksDABWxbF-PW5Us-SHnURnpdfqq59xd30oNgEBNEU4TSVZbrxxWijkYthVZZ9r_bkymIH69vg1MBCeXClJtpskjTy"
 tokenType = None
 ttl = None
 
@@ -204,8 +204,8 @@ def handleSkip(*args):
         r = requests.post("https://api.spotify.com/v1/me/player/next", headers=headers)
         if r.status_code == 204 or r.status_code == 200:
             print(f"{str(datetime.datetime.now())}: [LOCAL] Successfully skipped.")
-            writeToArduino(str({"status": r.status_code, "message": "playback started"}))
-            handleGetSongDuration()
+            time.sleep(0.5)
+            handleGetSongInfo()
         elif r.status_code in [401, 403]:
             print(f"{str(datetime.datetime.now())}: [LOCAL] Authorization error: {r.status_code}, {r.reason}")
             writeToArduino(str({"status": r.status_code, "message": "authorization error"}))
@@ -220,6 +220,7 @@ def handleSkip(*args):
         writeToArduino(str({"message": "request error"}))
 
 def restartSong(*args):
+    print("restartSong called")
     if (refreshToken is None):
         writeToArduino(str({"status": 401, "message": "authorization error"}))
     headers = {"Authorization": f"Bearer {refreshToken}"}
@@ -236,7 +237,7 @@ def restartSong(*args):
         print(f"Playback failed: {r.status_code}, {r.reason}")
         writeToArduino(str({"status": r.status_code, "message": "playback failed"}))
 
-def handleGetSongDuration(*args):
+def handleGetSongInfo(*args):
     if (refreshToken is None):
         writeToArduino(str({"status": 401, "message": "authorization error"}))
     headers = {"Authorization": f"Bearer {refreshToken}"}
@@ -246,11 +247,13 @@ def handleGetSongDuration(*args):
         writeToArduino(str({"status": r.status_code, "message": "error"}))
     # print(r.json())
     item = r.json()['item']
+    progress_ms = r.json()['progress_ms']
     if (item is None):
         writeToArduino(str({"message": "empty item"}))
     print(f"{str(datetime.datetime.now())}: [LOCAL] Duration: {item['duration_ms']}")
     print(f"{str(datetime.datetime.now())}: [LOCAL] Song name: {item['name']}")
-    writeToArduino(str({"duration": item["duration_ms"], "name": item["name"]}))
+    print(f"{str(datetime.datetime.now())}: [LOCAL] Song progress: {progress_ms}")
+    writeToArduino(str({"duration": item["duration_ms"], "name": item["name"], "progress": progress_ms}))
 
 def handleVolume(*args):
     volume_level = args[0]
@@ -276,19 +279,20 @@ messageResponses = {
     "play": handlePlay,
     "pause": handlePause,
     "skip": handleSkip,
-    "getSongDuration": handleGetSongDuration
-    # "volume": handleVolume
+    "getSongInfo": handleGetSongInfo,
+    "volume": handleVolume
 }
 
 def handleArduinoMessage(aMessage):
     print(str(datetime.datetime.now()) + ": [ARDUINO] " + aMessage)
 
     tokens = aMessage.strip().split()
-    request = tokens[0]
-    args = tokens[1:]
-    if (request in messageResponses):
-        messageResponses[request](*args)
-
+    if (len(tokens) > 0):
+        request = tokens[0]
+        args = tokens[1:]
+        if (request in messageResponses):
+            messageResponses[request](*args)
+    
 # ---- MAIN CODE -----
 
 configureArduino()                                      # will reboot AVR based Arduinos
@@ -304,10 +308,10 @@ while True:
             break
 print("Arduino Ready")
 # getRefreshToken()
-# handleGetSongDuration()
+handleGetSongInfo()
 restartSong()
 handlePause()
-# handleGetSongDuration()
+
 
 
 # --- Now you handle the commands received either from Arduino or stdin

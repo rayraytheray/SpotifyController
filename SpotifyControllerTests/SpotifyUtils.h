@@ -6,6 +6,7 @@ void updateInputs();
 void displaySongName(String songName);
 void displayProgressBar();
 void updateProgressBar(long mils);
+// void fillProgressBar(long mils);
 void setTimeBetweenUpdate(long mils);
 
 #endif 

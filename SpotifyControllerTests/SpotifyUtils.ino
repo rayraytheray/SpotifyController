@@ -48,6 +48,7 @@ void displaySongName(String songName) {
 
 void displayProgressBar() {
   // Write empty progress bar 
+  Serial.println("Clearing progress bar");
   lcd.setCursor(0, 0);
   for(int i=0; i<16; i++) {
     lcd.write("-");
@@ -57,11 +58,20 @@ void displayProgressBar() {
 
 void updateProgressBar(long mils) {
   //Add block to progress bar every timeBetweenUpdate
-  if((mils / timeBetweenUpdate > barsFilled) && (barsFilled < 16)) {
+  if((mils / timeBetweenUpdate > barsFilled)  && (barsFilled < 16)) {
+    Serial.println(mils / timeBetweenUpdate);
     lcd.write(byte(255));
     barsFilled++;
   }
 }
+
+// void fillProgressBar(long mils) {
+//   int numBars = mils / timeBetweenUpdate;
+//   for(int i = 0; i < numBars; i++) {
+//     lcd.write(byte(255));
+//   }
+//   barsFilled = numBars;
+// }
 
 void setTimeBetweenUpdate(long mils) {
   timeBetweenUpdate = mils;
