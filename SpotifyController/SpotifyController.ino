@@ -6,6 +6,9 @@ String songName = "Waiting For Song";
 unsigned long songDuration = 0;
 unsigned long songSyncTime = 0;
 
+const int threshold = 10;
+int last_pot_value = 0;
+
 // Button setup
 const unsigned long DEBOUNCE_TIME = 500; // debounce time in ms
 volatile unsigned long lastPlayPress = 0;
@@ -70,10 +73,15 @@ void loop() {
   CURRENT_STATE = updateFSM(CURRENT_STATE, lastButtonPressed);
   delay(10);
 
-  int potValue = analogRead(A0);
-  Serial.print("volume ");     
-  Serial.println(potValue);
-  delay(100);
+  int pot_value = analogRead(A0);
+  if (0 <= pot_value && pot_value <= 1023) {
+    // Send updated volume only if the change exceeds the threshold
+    if (abs(pot_value - last_pot_value) > threshold) {
+      Serial.print("volume ");
+      Serial.println(pot_value);
+      last_pot_value = pot_value;
+    }   
+  }
 }
 
 state updateFSM(state curState, int lastButton) {
@@ -96,26 +104,26 @@ state updateFSM(state curState, int lastButton) {
     else if (playFlag) { //if play was pressed
       Serial.println("play");
       playFlag = false;
-      nextState = sPLAYING;
       songTimer.start();
+      nextState = sPLAYING;
     }
     break;
   case sPLAYING: {
     unsigned long songElapsed = songTimer.getElapsedTime();
     updateProgressBar(songElapsed);
-    //if the song has reached the end, request new song info from API
-    if(songElapsed >= (songDuration + 1000)) { //1 second of delay to be safe
-      Serial.println("getSongInfo");
-      displayProgressBar(); //clear progress bar
-      songTimer.reset();
-      songTimer.start(songSyncTime); //sync local timer and API response
-    }
-    else if (skipFlag) { //if skip was pressed
+    if (skipFlag) { //if skip was pressed
       skipFlag = false;
       Serial.println("skip");
       displayProgressBar();
       songTimer.reset();
       songTimer.start();
+    }
+    //if the song has reached the end, request new song info from API
+    else if(songElapsed >= (songDuration + 1000)) { //1 second of delay to be safe
+      Serial.println("getSongInfo");
+      displayProgressBar(); //clear progress bar
+      songTimer.reset();
+      songTimer.start(songSyncTime); //sync local timer and API response
     }
     else if (playFlag) { //if pause was pressed 
       Serial.println("pause");
@@ -150,6 +158,7 @@ void handleSkip() {
 
 void parseResponse(JsonDocument doc) {
   if(doc.isNull()) {
+    Serial.println("Doc is null in parseResponse");
     return;
   }
   const char* message = doc["message"];
@@ -158,10 +167,9 @@ void parseResponse(JsonDocument doc) {
   }
   const char* name = doc["name"];
   if(name) {
-    //update our variables tracking song info
     songName = name;
     songDuration = doc["duration"].as<unsigned long>();
-    songSyncTime = doc["progress_ms"].as<unsigned long>();
+    songSyncTime = doc["progress"].as<unsigned long>();
     setTimeBetweenUpdate(songDuration / 16);
     displaySongName(songName);
   }

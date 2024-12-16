@@ -41,16 +41,11 @@ import requests
 # import osascript
 import arduino_secrets
 
-import audio
-arduino_port = "/dev/cu.usbmodemF412FA9F08242"  
-audio_controller = audio.start_audio_controller(arduino_port)
-
-
 baudRate = 115200
 arduinoQueue = queue.Queue()
 localQueue = queue.Queue()
 
-refreshToken = "BQBGq8FgVjGPrzUI5H3AhEN7zg7w0dGptExFHI8fryN9uGEt7nL-athpGXoXeeNA4cYpK-tM_EOAoTvtLBKrCxhXZ3ZsLq6gWkQEDCPkkJ5Cf0Wa50iwmxxx1vmyprvLpM_y4QAvO5QKHv98xUJCq5pP_qFR3QFgi3ReK6kXpMO0zQxhMUqF70ilyOdF8Q"
+refreshToken = "BQDPfzkqYvmnwUZYBnFxO5MrMWBtU_eXY0OnnRsbi0myHaLI_OOleRdzqYBF2DJXoGBkiUhhZ9PHFIuoJdTBbEmb8W-FBcEL3oORGqiksDABWxbF-PW5Us-SHnURnpdfqq59xd30oNgEBNEU4TSVZbrxxWijkYthVZZ9r_bkymIH69vg1MBCeXClJtpskjTy"
 tokenType = None
 ttl = None
 
@@ -209,6 +204,7 @@ def handleSkip(*args):
         r = requests.post("https://api.spotify.com/v1/me/player/next", headers=headers)
         if r.status_code == 204 or r.status_code == 200:
             print(f"{str(datetime.datetime.now())}: [LOCAL] Successfully skipped.")
+            time.sleep(0.5)
             handleGetSongInfo()
         elif r.status_code in [401, 403]:
             print(f"{str(datetime.datetime.now())}: [LOCAL] Authorization error: {r.status_code}, {r.reason}")
@@ -283,8 +279,8 @@ messageResponses = {
     "play": handlePlay,
     "pause": handlePause,
     "skip": handleSkip,
-    "getSongInfo": handleGetSongInfo
-    # "volume": handleVolume
+    "getSongInfo": handleGetSongInfo,
+    "volume": handleVolume
 }
 
 def handleArduinoMessage(aMessage):
@@ -297,55 +293,30 @@ def handleArduinoMessage(aMessage):
             messageResponses[request](*args)
     
 # ---- MAIN CODE -----
-# ---- MAIN CODE -----
 
-try:
-    configureArduino()  
-    print("Waiting for Arduino")
+configureArduino()                                      # will reboot AVR based Arduinos
+# configureUserInput()                                    # handle stdin 
 
-    while True:
-        if not arduinoQueue.empty():
-            if arduinoQueue.get() == "OK":
-                break
-    print("Arduino Ready")
+print("Waiting for Arduino")
 
-    handleGetSongInfo()
-    restartSong()
-    handlePause()
-
-    while True:
-        if not arduinoQueue.empty():
-            handleArduinoMessage(arduinoQueue.get())
-
-finally:
-    print("Stopping audio controller...")
-    audio_controller.stop()
-    print("Audio controller stopped.")
-# ---- MAIN CODE -----
-
-# configureArduino()                                      # will reboot AVR based Arduinos
-# # configureUserInput()                                    # handle stdin 
-
-# print("Waiting for Arduino")
-
-# # --- A good practice would be to wait for a know message from the Arduino
-# # for example at the end of the setup() the Arduino could send "OK"
-# while True:
-#     if not arduinoQueue.empty():
-#         if arduinoQueue.get() == "OK":
-#             break
-# print("Arduino Ready")
-# # getRefreshToken()
-# handleGetSongInfo()
-# restartSong()
-# handlePause()
+# --- A good practice would be to wait for a know message from the Arduino
+# for example at the end of the setup() the Arduino could send "OK"
+while True:
+    if not arduinoQueue.empty():
+        if arduinoQueue.get() == "OK":
+            break
+print("Arduino Ready")
+# getRefreshToken()
+handleGetSongInfo()
+restartSong()
+handlePause()
 
 
 
-# # --- Now you handle the commands received either from Arduino or stdin
-# while True:
-#     if not arduinoQueue.empty():
-#         handleArduinoMessage(arduinoQueue.get())
+# --- Now you handle the commands received either from Arduino or stdin
+while True:
+    if not arduinoQueue.empty():
+        handleArduinoMessage(arduinoQueue.get())
 
-#     # if not localQueue.empty():
-#     #     handleLocalMessage(localQueue.get())
+    # if not localQueue.empty():
+    #     handleLocalMessage(localQueue.get())

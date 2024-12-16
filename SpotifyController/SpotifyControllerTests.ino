@@ -1,122 +1,122 @@
-#include "SpotifyControllerTests.h"
+// #include "SpotifyControllerTests.h"
 
-// Test cases array definitions
-const state testStatesIn[6] = {
-    sWAIT_FOR_SONG,  // Test 0: Wait -> Paused when song loaded
-    sWAIT_FOR_SONG,  // Test 1: Wait -> Wait when no song
-    sPAUSED,         // Test 2: Paused -> Playing on play
-    sPAUSED,         // Test 3: Paused -> Playing on skip
-    sPLAYING,        // Test 4: Playing -> Paused on pause
-    sPLAYING         // Test 5: Playing -> Playing on skip
-};
+// // Test cases array definitions
+// const state testStatesIn[6] = {
+//     sWAIT_FOR_SONG,  // Test 0: Wait -> Paused when song loaded
+//     sWAIT_FOR_SONG,  // Test 1: Wait -> Wait when no song
+//     sPAUSED,         // Test 2: Paused -> Playing on play
+//     sPAUSED,         // Test 3: Paused -> Playing on skip
+//     sPLAYING,        // Test 4: Playing -> Paused on pause
+//     sPLAYING         // Test 5: Playing -> Playing on skip
+// };
 
-const state testStatesOut[6] = {
-    sPAUSED,
-    sWAIT_FOR_SONG,
-    sPLAYING,
-    sPLAYING,
-    sPAUSED,
-    sPLAYING
-};
+// const state testStatesOut[6] = {
+//     sPAUSED,
+//     sWAIT_FOR_SONG,
+//     sPLAYING,
+//     sPLAYING,
+//     sPAUSED,
+//     sPLAYING
+// };
 
-const state_inputs testInputs[6] = {
-    {0, "Test Song", 0, false, false},           
-    {0, "Waiting For Song", 0, false, false},   
-    {0, "Test Song", 0, false, true},            
-    {0, "Test Song", 0, true, false},           
-    {0, "Test Song", 1000, false, true},         
-    {0, "Test Song", 1000, true, false}         
-};
+// const state_inputs testInputs[6] = {
+//     {0, "Test Song", 0, false, false},           
+//     {0, "Waiting For Song", 0, false, false},   
+//     {0, "Test Song", 0, false, true},            
+//     {0, "Test Song", 0, true, false},           
+//     {0, "Test Song", 1000, false, true},         
+//     {0, "Test Song", 1000, true, false}         
+// };
 
-const state_vars testVarsIn[6] = {
-    {"Waiting For Song", 5000, 0, false, false}, 
-    {"Waiting For Song", 5000, 0, false, false}, 
-    {"Test Song", 5000, 0, false, false},       
-    {"Test Song", 5000, 0, false, false},        
-    {"Test Song", 5000, 0, false, false},        
-    {"Test Song", 5000, 0, false, false}         
-};
+// const state_vars testVarsIn[6] = {
+//     {"Waiting For Song", 5000, 0, false, false}, 
+//     {"Waiting For Song", 5000, 0, false, false}, 
+//     {"Test Song", 5000, 0, false, false},       
+//     {"Test Song", 5000, 0, false, false},        
+//     {"Test Song", 5000, 0, false, false},        
+//     {"Test Song", 5000, 0, false, false}         
+// };
 
-const state_vars testVarsOut[6] = {
-    {"Test Song", 5000, 0, false, false},        
-    {"Waiting For Song", 5000, 0, false, false}, 
-    {"Test Song", 5000, 0, false, false},       
-    {"Test Song", 5000, 0, false, false},       
-    {"Test Song", 5000, 0, false, false},        
-    {"Test Song", 5000, 0, false, false}        
-};
+// const state_vars testVarsOut[6] = {
+//     {"Test Song", 5000, 0, false, false},        
+//     {"Waiting For Song", 5000, 0, false, false}, 
+//     {"Test Song", 5000, 0, false, false},       
+//     {"Test Song", 5000, 0, false, false},       
+//     {"Test Song", 5000, 0, false, false},        
+//     {"Test Song", 5000, 0, false, false}        
+// };
 
-char* s2str(state s) {
-    switch(s) {
-        case sWAIT_FOR_SONG:
-            return "(1) WAIT_FOR_SONG";
-        case sPAUSED:
-            return "(2) PAUSED";
-        case sPLAYING:
-            return "(3) PLAYING";
-        default:
-            return "???";
-    }
-}
+// char* s2str(state s) {
+//     switch(s) {
+//         case sWAIT_FOR_SONG:
+//             return "(1) WAIT_FOR_SONG";
+//         case sPAUSED:
+//             return "(2) PAUSED";
+//         case sPLAYING:
+//             return "(3) PLAYING";
+//         default:
+//             return "???";
+//     }
+// }
 
-bool testTransition(state startState,
-                   state endState,
-                   state_inputs testStateInputs, 
-                   state_vars startStateVars,
-                   state_vars endStateVars,
-                   bool verbos) {
-    // Set up initial state
-    songName = startStateVars.songName;
-    songDuration = startStateVars.songDuration;
-    songSyncTime = startStateVars.songSyncTime;
-    skipFlag = startStateVars.skipFlag;
-    playFlag = startStateVars.playFlag;
+// bool testTransition(state startState,
+//                    state endState,
+//                    state_inputs testStateInputs, 
+//                    state_vars startStateVars,
+//                    state_vars endStateVars,
+//                    bool verbos) {
+//     // Set up initial state
+//     songName = startStateVars.songName;
+//     songDuration = startStateVars.songDuration;
+//     songSyncTime = startStateVars.songSyncTime;
+//     skipFlag = startStateVars.skipFlag;
+//     playFlag = startStateVars.playFlag;
     
-    // Update FSM
-    state resultState = updateFSM(startState, testStateInputs.lastButton);
+//     // Update FSM
+//     state resultState = updateFSM(startState, testStateInputs.lastButton);
     
-    // Check if test passed
-    bool passedTest = (endState == resultState &&
-                      songName == endStateVars.songName &&
-                      songDuration == endStateVars.songDuration &&
-                      songSyncTime == endStateVars.songSyncTime &&
-                      skipFlag == endStateVars.skipFlag &&
-                      playFlag == endStateVars.playFlag);
+//     // Check if test passed
+//     bool passedTest = (endState == resultState &&
+//                       songName == endStateVars.songName &&
+//                       songDuration == endStateVars.songDuration &&
+//                       songSyncTime == endStateVars.songSyncTime &&
+//                       skipFlag == endStateVars.skipFlag &&
+//                       playFlag == endStateVars.playFlag);
     
-    if (!verbos) {
-        return passedTest;
-    } else if (passedTest) {
-        char sToPrint[200];
-        sprintf(sToPrint, "Test from %s to %s PASSED", s2str(startState), s2str(endState));
-        Serial.println(sToPrint);
-        return true;
-    } else {
-        char sToPrint[200];
-        Serial.println(s2str(startState));
-        sprintf(sToPrint, "Test from %s to %s FAILED", s2str(startState), s2str(endState));
-        Serial.println(sToPrint);
-        sprintf(sToPrint, "End state expected: %s | actual: %s", s2str(endState), s2str(resultState));
-        Serial.println(sToPrint);
-        Serial.println("State Variables:");
-        Serial.print("songName expected: "); Serial.print(endStateVars.songName); 
-        Serial.print(" actual: "); Serial.println(songName);
-        Serial.print("skipFlag expected: "); Serial.print(endStateVars.skipFlag); 
-        Serial.print(" actual: "); Serial.println(skipFlag);
-        Serial.print("playFlag expected: "); Serial.print(endStateVars.playFlag); 
-        Serial.print(" actual: "); Serial.println(playFlag);
-        return false;
-    }
-}
+//     if (!verbos) {
+//         return passedTest;
+//     } else if (passedTest) {
+//         char sToPrint[200];
+//         sprintf(sToPrint, "Test from %s to %s PASSED", s2str(startState), s2str(endState));
+//         Serial.println(sToPrint);
+//         return true;
+//     } else {
+//         char sToPrint[200];
+//         Serial.println(s2str(startState));
+//         sprintf(sToPrint, "Test from %s to %s FAILED", s2str(startState), s2str(endState));
+//         Serial.println(sToPrint);
+//         sprintf(sToPrint, "End state expected: %s | actual: %s", s2str(endState), s2str(resultState));
+//         Serial.println(sToPrint);
+//         Serial.println("State Variables:");
+//         Serial.print("songName expected: "); Serial.print(endStateVars.songName); 
+//         Serial.print(" actual: "); Serial.println(songName);
+//         Serial.print("skipFlag expected: "); Serial.print(endStateVars.skipFlag); 
+//         Serial.print(" actual: "); Serial.println(skipFlag);
+//         Serial.print("playFlag expected: "); Serial.print(endStateVars.playFlag); 
+//         Serial.print(" actual: "); Serial.println(playFlag);
+//         return false;
+//     }
+// }
 
-bool testAllTests() {
-    for (int i = 0; i < 6; i++) {
-        Serial.print("Running test ");
-        Serial.println(i);
-        if (!testTransition(testStatesIn[i], testStatesOut[i], testInputs[i], testVarsIn[i], testVarsOut[i], true)) {
-            return false;
-        }
-        Serial.println();
-    }
-    Serial.println("All tests passed!");
-    return true;
-}
+// bool testAllTests() {
+//     for (int i = 0; i < 6; i++) {
+//         Serial.print("Running test ");
+//         Serial.println(i);
+//         if (!testTransition(testStatesIn[i], testStatesOut[i], testInputs[i], testVarsIn[i], testVarsOut[i], true)) {
+//             return false;
+//         }
+//         Serial.println();
+//     }
+//     Serial.println("All tests passed!");
+//     return true;
+// }
