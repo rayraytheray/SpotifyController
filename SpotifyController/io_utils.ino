@@ -15,7 +15,7 @@ void writeToBuf() {
   }
 }
 
-Only ever called if writtenTo is true
+// Only ever called if writtenTo is true
 JsonDocument readResponse() {
   JsonDocument doc;
   DeserializationError error = deserializeJson(doc, serialBuffer);

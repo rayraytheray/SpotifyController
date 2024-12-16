@@ -70,7 +70,7 @@ void loop() {
   }
 
   static state CURRENT_STATE = sWAIT_FOR_SONG;
-  CURRENT_STATE = updateFSM(CURRENT_STATE, lastButtonPressed);
+  CURRENT_STATE = updateFSM(CURRENT_STATE);
   delay(10);
 
   int pot_value = analogRead(A0);
@@ -84,7 +84,7 @@ void loop() {
   }
 }
 
-state updateFSM(state curState, int lastButton) {
+state updateFSM(state curState) {
   state nextState = curState;
   switch(curState) {
   case sWAIT_FOR_SONG:
