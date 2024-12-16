@@ -224,11 +224,11 @@ def restartSong(*args):
         writeToArduino(str({"status": 401, "message": "authorization error"}))
     headers = {"Authorization": f"Bearer {refreshToken}"}
     r = requests.put("https://api.spotify.com/v1/me/player/seek?position_ms=0", headers=headers)
-    if (r.status_code == 204):
+    if (r.status_code == 200):
         writeToArduino(str({"status": r.status_code, "message": "playback reset"}))
     elif r.status_code in [401, 403]:
-            print(f"Authorization error: {r.status_code}, {r.reason}")
-            writeToArduino(str({"status": r.status_code, "message": "authorization error"}))
+        print(f"Authorization error: {r.status_code}, {r.reason}")
+        writeToArduino(str({"status": r.status_code, "message": "authorization error"}))
     elif r.status_code == 429:
         print("Rate limit exceeded")
         writeToArduino(str({"status": r.status_code, "message": "rate limit exceeded error"}))
@@ -282,6 +282,7 @@ messageResponses = {
 
 def handleArduinoMessage(aMessage):
     print(str(datetime.datetime.now()) + ": [ARDUINO] " + aMessage)
+
     tokens = aMessage.strip().split()
     request = tokens[0]
     args = tokens[1:]
