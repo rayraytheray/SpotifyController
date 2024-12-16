@@ -18,6 +18,9 @@
 #  THE SOFTWARE.
 #  ===============================================
 
+# CODE BASED OFF OF THE FOLLOWING POST:
+# https://forum.arduino.cc/t/two-ways-communication-between-python3-and-arduino/1219738
+
 #define SPOTIFY_HOST "api.spotify.com"
 #define SPOTIFY_ACCOUNTS_HOST "accounts.spotify.com"
 
@@ -87,7 +90,6 @@ def selectArduino():
     print(f"selecting: {selectedPort.device}")
     return selectedPort.device
 
-
 def listenToArduino():
     message = b''
     while True:
@@ -103,16 +105,6 @@ def listenToArduino():
             if incoming not in (b'', b'\r'):
                 message += incoming
 
-# def listenToLocal():
-#     while True:
-#         command = sys.stdin.readline().strip().upper()
-#         localQueue.put(command)
-
-# def configureUserInput():
-#     localThread = threading.Thread(target=listenToLocal, args=())
-#     localThread.daemon = True
-#     localThread.start()
-
 def configureArduino():
     global arduinoPort
     arduinoPort = selectArduino()
@@ -125,6 +117,22 @@ def configureArduino():
 def writeToArduino(message):
     arduino.write(message.encode("utf-8"))
     arduino.write(bytes("\n", encoding="utf-8"))
+
+def log(device, message):
+    print(f"{str(datetime.datetime.now())}: [{device}] {message}")
+
+def handleResponse(response):
+    log_string = ""
+    log_string += str(response.status_code)
+    log_string += ", "
+    if (response.status_code >= 200 and response.status_code < 300):
+        log_string += "success, "
+        if (response.status_code == 204):
+            log_string += "empty content"
+    else:
+        log_string += f"{response.reason}"
+    log("LOCAL", log_string)
+    writeToArduino(str({"status":r.status_code, "message": log_string}))
 
 # def getRefreshToken():
 #     payload = f"grant_type=client_credentials&client_id={arduino_secrets.CLIENT_ID}&client_secret={arduino_secrets.CLIENT_SECRET}"
@@ -143,10 +151,6 @@ def writeToArduino(message):
 
 # ---- CALLBACKS UPON MESSAGES -----
 
-# def handleLocalMessage(aMessage):
-#     print("[LOCAL]: " + aMessage)
-#     arduino.write(aMessage.encode('utf-8'))
-#     arduino.write(bytes('\n', encoding='utf-8'))
 def handlePlay(*args):
     # global refreshToken, tokenType
     # print(f"Using refreshToken: {refreshToken}")
@@ -154,70 +158,24 @@ def handlePlay(*args):
         writeToArduino(str({"status": 401, "message": "authorization error"}))
     headers = {"Authorization": f"Bearer {refreshToken}", "Content-Type": "application/x-www-form-urlencoded"}
 
-    try:
-        r = requests.put("https://api.spotify.com/v1/me/player/play", headers=headers)
-        if r.status_code == 204 or r.status_code == 200:
-            print(f"{str(datetime.datetime.now())}: [LOCAL] Succesfully started playing.")
-            writeToArduino(str({"status": r.status_code, "message": "playback started"}))
-        elif r.status_code in [401, 403]:
-            print(f"{str(datetime.datetime.now())}: [LOCAL] Authorization error: {r.status_code}, {r.text}")
-            writeToArduino(str({"status": r.status_code, "message": "authorization error"}))
-        elif r.status_code == 429:
-            print(f"{str(datetime.datetime.now())}: [LOCAL] Rate limit exceeded")
-            writeToArduino(str({"status": r.status_code, "message": "rate limit exceeded"}))
-        else:
-            print(f"{str(datetime.datetime.now())}: [LOCAL] Playback failed: {r.status_code}, {r.text}")
-            writeToArduino(str({"status": r.status_code, "message": "playback failed"}))
-    except Exception as e:
-        print(f"{str(datetime.datetime.now())}: [LOCAL] Error in handlePlay: {e}")
-        writeToArduino(str({"message": "request error"}))
+    r = requests.put(SPOTIFY_PLAY_ENDPOINT, headers=headers)
+    handleResponse(r)
 
 def handlePause(*args): 
     if (refreshToken is None):
         writeToArduino(str({"status": 401, "message": "authorization error"}))
     headers = {"Authorization": f"Bearer {refreshToken}"}
 
-    try:
-        r = requests.put("https://api.spotify.com/v1/me/player/pause", headers=headers)
-        if r.status_code == 204 or r.status_code == 200:
-            print(f"{str(datetime.datetime.now())}: [LOCAL] Successfully paused.")
-            writeToArduino(str({"status": r.status_code, "message": "playback started"}))
-        elif r.status_code in [401, 403]:
-            print(f"Authorization error: {r.status_code}, {r.text}")
-            writeToArduino(str({"status": r.status_code, "message": "authorization error"}))
-        elif r.status_code == 429:
-            print(f"{str(datetime.datetime.now())}: [LOCAL] Rate limit exceeded")
-            writeToArduino(str({"status": r.status_code, "message": "rate limit exceeded"}))
-        else:
-            print(f"{str(datetime.datetime.now())}: [LOCAL] Playback failed: {r.status_code}, {r.text}")
-            writeToArduino(str({"status": r.status_code, "message": "playback failed"}))
-    except Exception as e:
-        print(f"{str(datetime.datetime.now())}: [LOCAL] Error in handlePlay: {e}")
-        writeToArduino(str({"message": "request failure"}))
+    r = requests.put(SPOTIFY_PAUSE_ENDPOINT, headers=headers)
+    handleResponse(r)
 
 def handleSkip(*args):
     if (refreshToken is None):
         writeToArduino(str({"status": 401, "message": "authorization error"}))
     headers = {"Authorization": f"Bearer {refreshToken}"}
 
-    try:
-        r = requests.post("https://api.spotify.com/v1/me/player/next", headers=headers)
-        if r.status_code == 204 or r.status_code == 200:
-            print(f"{str(datetime.datetime.now())}: [LOCAL] Successfully skipped.")
-            time.sleep(0.5)
-            handleGetSongInfo()
-        elif r.status_code in [401, 403]:
-            print(f"{str(datetime.datetime.now())}: [LOCAL] Authorization error: {r.status_code}, {r.reason}")
-            writeToArduino(str({"status": r.status_code, "message": "authorization error"}))
-        elif r.status_code == 429:
-            print(f"{str(datetime.datetime.now())}: [LOCAL] Rate limit exceeded")
-            writeToArduino(str({"status": r.status_code, "message": "rate limit exceeded"}))
-        else:
-            print(f"{str(datetime.datetime.now())}: [LOCAL] Playback failed: {r.status_code}, {r.reason}")
-            writeToArduino(str({"status": r.status_code, "message": "playback failed"}))
-    except Exception as e:
-        print(f"{str(datetime.datetime.now())}: [LOCAL] Error in handlePlay: {e}")
-        writeToArduino(str({"message": "request error"}))
+    r = requests.post(SPOTIFY_NEXT_TRACK_ENDPOINT, headers=headers)
+    handleResponse(r)
 
 def restartSong(*args):
     print("restartSong called")
@@ -225,34 +183,25 @@ def restartSong(*args):
         writeToArduino(str({"status": 401, "message": "authorization error"}))
     headers = {"Authorization": f"Bearer {refreshToken}"}
     r = requests.put("https://api.spotify.com/v1/me/player/seek?position_ms=0", headers=headers)
-    if (r.status_code == 200):
-        writeToArduino(str({"status": r.status_code, "message": "playback reset"}))
-    elif r.status_code in [401, 403]:
-        print(f"Authorization error: {r.status_code}, {r.reason}")
-        writeToArduino(str({"status": r.status_code, "message": "authorization error"}))
-    elif r.status_code == 429:
-        print("Rate limit exceeded")
-        writeToArduino(str({"status": r.status_code, "message": "rate limit exceeded error"}))
-    else:
-        print(f"Playback failed: {r.status_code}, {r.reason}")
-        writeToArduino(str({"status": r.status_code, "message": "playback failed"}))
+    handleResponse(r)
 
 def handleGetSongInfo(*args):
     if (refreshToken is None):
         writeToArduino(str({"status": 401, "message": "authorization error"}))
     headers = {"Authorization": f"Bearer {refreshToken}"}
-    r = requests.get("https://api.spotify.com/v1/me/player/currently-playing", headers=headers)
-    if (r.status_code != 200):
-        print(str(r.status_code) + " " + str(r.reason))
-        writeToArduino(str({"status": r.status_code, "message": "error"}))
-    # print(r.json())
-    item = r.json()['item']
-    progress_ms = r.json()['progress_ms']
+    r = requests.get(SPOTIFY_CURRENT_SONG_ENDPOINT, headers=headers)
+
+    try:
+        item = r.json()['item']
+        progress_ms = r.json()['progress_ms']
+    except Exception:
+        log("LOCAL", "Error: Unable to decode JSON. Most likely access token issue")
+
     if (item is None):
         writeToArduino(str({"message": "empty item"}))
-    print(f"{str(datetime.datetime.now())}: [LOCAL] Duration: {item['duration_ms']}")
-    print(f"{str(datetime.datetime.now())}: [LOCAL] Song name: {item['name']}")
-    print(f"{str(datetime.datetime.now())}: [LOCAL] Song progress: {progress_ms}")
+    log("LOCAL", f"Duration: {item['duration_ms']}")
+    log("LOCAL", f"Song name: {item['name']}")
+    log("LOCAL", f"Song progress: {progress_ms}")
     writeToArduino(str({"duration": item["duration_ms"], "name": item["name"], "progress": progress_ms}))
 
 def handleVolume(*args):
@@ -268,12 +217,12 @@ def handleVolume(*args):
             try:
                 subprocess.run(["osascript", "-e", f"set volume output volume {volume_percent}"])
             except Exception as e:
-                print(f"{str(datetime.datetime.now())}: [LOCAL] (Error) {e}")
-            print(f"{str(datetime.datetime.now())}: [LOCAL] Volume set to {int(volume_level * 100)}%")
+                log("LOCAL", f"Error: {e}")
+            log("LOCAL", f"Volume set to {int(volume_level * 100)}%")
         else:
-            print(f"{str(datetime.datetime.now())}: [LOCAL] Ignored out-of-range value '{pot_value}'")
+            log("LOCAL", f"Ignored out-of-range value '{pot_value}'")
     else:
-        print(f"{str(datetime.datetime.now())}: [LOCAL] Ignored non-numeric data '{volume_level}'")
+        log("LOCAL", f"Ignored non-numeric data '{volume_level}'")
 
 messageResponses = {
     "play": handlePlay,
@@ -284,7 +233,7 @@ messageResponses = {
 }
 
 def handleArduinoMessage(aMessage):
-    print(str(datetime.datetime.now()) + ": [ARDUINO] " + aMessage)
+    log("ARDUINO", aMessage)
 
     tokens = aMessage.strip().split()
     if (len(tokens) > 0):
@@ -296,23 +245,20 @@ def handleArduinoMessage(aMessage):
 # ---- MAIN CODE -----
 
 configureArduino()                                      # will reboot AVR based Arduinos
-# configureUserInput()                                    # handle stdin 
 
-print("Waiting for Arduino")
+log("LOCAL", "Waiting for Arduino")
 
-# --- A good practice would be to wait for a know message from the Arduino
+# --- A good practice would be to wait for ack message from the Arduino
 # for example at the end of the setup() the Arduino could send "OK"
 while True:
     if not arduinoQueue.empty():
         if arduinoQueue.get() == "OK":
             break
-print("Arduino Ready")
-# getRefreshToken()
+log("LOCAL", "Arduino Ready")
+
 handleGetSongInfo()
 restartSong()
 handlePause()
-
-
 
 # --- Now you handle the commands received either from Arduino or stdin
 while True:
