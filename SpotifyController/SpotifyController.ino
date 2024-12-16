@@ -123,7 +123,6 @@ state updateFSM(state curState, int lastButton) {
       Serial.println("getSongInfo");
       displayProgressBar(); //clear progress bar
       songTimer.reset();
-      songTimer.start(songSyncTime); //sync local timer and API response
     }
     else if (playFlag) { //if pause was pressed 
       Serial.println("pause");
@@ -170,6 +169,7 @@ void parseResponse(JsonDocument doc) {
     songName = name;
     songDuration = doc["duration"].as<unsigned long>();
     songSyncTime = doc["progress"].as<unsigned long>();
+    songTimer.start(songSyncTime); //sync local timer and API response
     setTimeBetweenUpdate(songDuration / 16);
     displaySongName(songName);
   }
