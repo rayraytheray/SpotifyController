@@ -6,6 +6,8 @@
 #include <WDT.h>
 #include "SongTimer.h"
 
+#define TEST
+
 char serialBuffer[1024];
 int bytesRead = 0;
 int writtenTo = 0;

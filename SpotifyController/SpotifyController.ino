@@ -25,63 +25,71 @@ const long wdtInterval = 2684; // wdt interval in ms
 SongTimer songTimer;
 
 void setup() {
-  // Set up serial
+   // Set up serial
   Serial.begin(115200); 
   Serial.println();
+  while(!Serial);
+  #ifdef TEST
+    Serial.println("STARTING TESTS");
+    testAllTests();
+    Serial.println("test");
+  #else
+    Serial.println("OK"); // let the python code know we are ready
 
-  Serial.println("OK"); // let the python code know we are ready
+    // Set up LCD and buttons
+    setupUtils();
+    displaySongName(songName);
 
-  // Set up LCD and buttons
-  setupUtils();
-  displaySongName(songName);
+    // Set up button pin interrupts
+    pinMode(playPin, INPUT_PULLUP);
+    pinMode(skipPin, INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(playPin), handlePlay, FALLING);
+    attachInterrupt(digitalPinToInterrupt(skipPin), handleSkip, FALLING);
 
-  // Set up button pin interrupts
-  pinMode(playPin, INPUT_PULLUP);
-  pinMode(skipPin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(playPin), handlePlay, FALLING);
-  attachInterrupt(digitalPinToInterrupt(skipPin), handleSkip, FALLING);
+    // Start Watchdog Timer
+    if(wdtInterval < 1) {
+      Serial.println("Invalid watchdog interval");
+      while(1){}
+    }
 
-  // Start Watchdog Timer
-  if(wdtInterval < 1) {
-    Serial.println("Invalid watchdog interval");
-    while(1){}
-  }
-
-  if(WDT.begin(wdtInterval)) {
-    WDT.refresh();
-  } else {
-    Serial.println("Error initializing watchdog");
-    while(1){}
-  }
+    if(WDT.begin(wdtInterval)) {
+      WDT.refresh();
+    } else {
+      Serial.println("Error initializing watchdog");
+      while(1){}
+    }
+  #endif 
 }
 
 void loop() {
-  // Pet watchdog
-  WDT.refresh();
-  
-  // echo back in uppercase what we received
-  if (Serial.available()) {
-    writeToBuf();
-  } else {
-    if (writtenTo) {
-      JsonDocument doc = readResponse();
-      parseResponse(doc);
+  #ifndef TEST
+    // Pet watchdog
+    WDT.refresh();
+    
+    // echo back in uppercase what we received
+    if (Serial.available()) {
+      writeToBuf();
+    } else {
+      if (writtenTo) {
+        JsonDocument doc = readResponse();
+        parseResponse(doc);
+      }
     }
-  }
 
-  static state CURRENT_STATE = sWAIT_FOR_SONG;
-  CURRENT_STATE = updateFSM(CURRENT_STATE);
-  delay(10);
+    static state CURRENT_STATE = sWAIT_FOR_SONG;
+    CURRENT_STATE = updateFSM(CURRENT_STATE);
+    delay(10);
 
-  int pot_value = analogRead(A0);
-  if (0 <= pot_value && pot_value <= 1023) {
-    // Send updated volume only if the change exceeds the threshold
-    if (abs(pot_value - last_pot_value) > threshold) {
-      Serial.print("volume ");
-      Serial.println(pot_value);
-      last_pot_value = pot_value;
-    }   
-  }
+    int pot_value = analogRead(A0);
+    if (0 <= pot_value && pot_value <= 1023) {
+      // Send updated volume only if the change exceeds the threshold
+      if (abs(pot_value - last_pot_value) > threshold) {
+        Serial.print("volume ");
+        Serial.println(pot_value);
+        last_pot_value = pot_value;
+      }   
+    }
+  #endif 
 }
 
 state updateFSM(state curState) {
@@ -160,6 +168,12 @@ void parseResponse(JsonDocument doc) {
     Serial.println("Doc is null in parseResponse");
     return;
   }
+  #ifdef TEST 
+  if(doc["PING"]) {
+    Serial.print(doc["PING"].as<const char*>());
+    Serial.println(": PONG");
+  }
+  #endif
   const char* message = doc["message"];
   if(message) {
     Serial.println(message);
