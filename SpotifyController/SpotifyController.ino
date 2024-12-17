@@ -28,14 +28,13 @@ void setup() {
    // Set up serial
   Serial.begin(115200); 
   Serial.println();
+  Serial.println("OK"); // let the python code know we are ready
   while(!Serial);
   #ifdef TEST
     Serial.println("STARTING TESTS");
     testAllTests();
     Serial.println("test");
   #else
-    Serial.println("OK"); // let the python code know we are ready
-
     // Set up LCD and buttons
     setupUtils();
     displaySongName(songName);
