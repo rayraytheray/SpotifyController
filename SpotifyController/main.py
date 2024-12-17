@@ -43,6 +43,7 @@ import serial.tools.list_ports
 import requests 
 # import osascript
 import arduino_secrets
+import tests
 
 baudRate = 115200
 arduinoQueue = queue.Queue()
@@ -132,7 +133,7 @@ def handleResponse(response):
     else:
         log_string += f"{response.reason}"
     log("LOCAL", log_string)
-    writeToArduino(str({"status":r.status_code, "message": log_string}))
+    writeToArduino(str({"status":response.status_code, "message": log_string}))
 
 # def getRefreshToken():
 #     payload = f"grant_type=client_credentials&client_id={arduino_secrets.CLIENT_ID}&client_secret={arduino_secrets.CLIENT_SECRET}"
@@ -224,16 +225,27 @@ def handleVolume(*args):
     else:
         log("LOCAL", f"Ignored non-numeric data '{volume_level}'")
 
+# ---- TEST CODE -----
+
+tester = tests.UnitTests(refreshToken)
+
+# --- END TEST -------
+
 messageResponses = {
     "play": handlePlay,
     "pause": handlePause,
     "skip": handleSkip,
     "getSongInfo": handleGetSongInfo,
-    "volume": handleVolume
+    "volume": handleVolume,
+    "test": tester.runAll
 }
 
 def handleArduinoMessage(aMessage):
     log("ARDUINO", aMessage)
+    # --- Testing ---
+    if (aMessage.startsWith("PONG")):
+        tester.testComm2(aMessage)
+    # --- End Test --
 
     tokens = aMessage.strip().split()
     if (len(tokens) > 0):
