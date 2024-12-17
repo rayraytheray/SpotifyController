@@ -1,5 +1,4 @@
 import requests 
-import main
 
 SPOTIFY_HOST = "api.spotify.com"
 SPOTIFY_ACCOUNTS_HOST = "https://accounts.spotify.com"
@@ -38,17 +37,17 @@ class UnitTests:
         assert "duration_ms" in r.json()["item"]
         assert "name" in r.json()["name"]
 
-    def testComm1(self):
-        main.writeToArduino(str({"PING": "SENDER"}))
+    def testComm1(self, write):
+        write(str({"PING": "SENDER"}))
         self.testing_comm = True
     
     def testComm2(self, message):
         assert self.testing_comm 
         assert message == "SENDER: PONG"
 
-    def runAll(self):
+    def runAll(self, write):
         self.testPlay()
         self.testPause()
         self.testSkip()
         self.testGetCurrentSong()
-        self.testComm1()
+        self.testComm1(write)

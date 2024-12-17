@@ -43,7 +43,7 @@ import serial.tools.list_ports
 import requests 
 # import osascript
 import arduino_secrets
-import tests
+import arduino_tests
 
 baudRate = 115200
 arduinoQueue = queue.Queue()
@@ -107,6 +107,9 @@ def listenToArduino():
                 message += incoming
 
 def configureArduino():
+    """
+    Starts thread so we can asynchronously handle Arduino requests coming in.
+    """
     global arduinoPort
     arduinoPort = selectArduino()
     global arduino
@@ -116,13 +119,29 @@ def configureArduino():
     arduinoThread.start()
 
 def writeToArduino(message):
+    """
+    Helper function to guarantee message being sent is encoded in an Arduino-friendly manner.
+    """
     arduino.write(message.encode("utf-8"))
     arduino.write(bytes("\n", encoding="utf-8"))
 
 def log(device, message):
+    """
+    Takes in device, which can be one of {"LOCAL", "ARDUINO"}
+    and message, an arbitrary string.
+
+    Logging helper function to ensure useful information is provided with each log.
+    """
     print(f"{str(datetime.datetime.now())}: [{device}] {message}")
 
 def handleResponse(response):
+    """
+    Takes in response object from request.
+
+    Logging helper function. Writes down status code, if it is 200 level then record a success.
+    Otherwise, record the reason for the response as well as an error message.
+    Sends string in a nice logging format and sends back to Arduino.
+    """
     log_string = ""
     log_string += str(response.status_code)
     log_string += ", "
@@ -153,8 +172,13 @@ def handleResponse(response):
 # ---- CALLBACKS UPON MESSAGES -----
 
 def handlePlay(*args):
-    # global refreshToken, tokenType
-    # print(f"Using refreshToken: {refreshToken}")
+    """
+    Takes in no arguments.
+
+    Sends a request to Spotify to play the current song.
+    Note that the song should not already be playing, otherwise an error will occur.
+    Should receive 204 No Content for success.
+    """
     if (refreshToken is None):
         writeToArduino(str({"status": 401, "message": "authorization error"}))
     headers = {"Authorization": f"Bearer {refreshToken}", "Content-Type": "application/x-www-form-urlencoded"}
@@ -163,6 +187,13 @@ def handlePlay(*args):
     handleResponse(r)
 
 def handlePause(*args): 
+    """
+    Takes in no arguments.
+
+    Sends a request to Spotify to pause the current song.
+    Note that the song should not already be paused, otherwise an error will occur.
+    Should receive 204 No Content for success.
+    """
     if (refreshToken is None):
         writeToArduino(str({"status": 401, "message": "authorization error"}))
     headers = {"Authorization": f"Bearer {refreshToken}"}
@@ -171,6 +202,12 @@ def handlePause(*args):
     handleResponse(r)
 
 def handleSkip(*args):
+    """
+    Takes in no arguments.
+
+    Sends a request to Spotify to skip to the next song.
+    Should receive 204 No Content for success.
+    """
     if (refreshToken is None):
         writeToArduino(str({"status": 401, "message": "authorization error"}))
     headers = {"Authorization": f"Bearer {refreshToken}"}
@@ -179,7 +216,13 @@ def handleSkip(*args):
     handleResponse(r)
 
 def restartSong(*args):
-    print("restartSong called")
+    """
+    Takes in no arguments.
+
+    Sends a request to Spotify to reset playback to the start of the song.
+    Should receive 204 No Content for success.
+    """
+    log("LOCAL", "restartSong called")
     if (refreshToken is None):
         writeToArduino(str({"status": 401, "message": "authorization error"}))
     headers = {"Authorization": f"Bearer {refreshToken}"}
@@ -187,6 +230,17 @@ def restartSong(*args):
     handleResponse(r)
 
 def handleGetSongInfo(*args):
+    """
+    Takes in no arguments.
+
+    Sends a request to Spotify asking for object representing currently playing song.
+    Acquires the necessary information (duration, song name, and song progress) and 
+    passes it to Arduino.
+
+    Should receive 200 with the object for success. 
+    Note that 204 No Content may happen, in the case where access is granted but the 
+    user does not have an active audio player playing. This is considered an error.
+    """
     if (refreshToken is None):
         writeToArduino(str({"status": 401, "message": "authorization error"}))
     headers = {"Authorization": f"Bearer {refreshToken}"}
@@ -206,6 +260,13 @@ def handleGetSongInfo(*args):
     writeToArduino(str({"duration": item["duration_ms"], "name": item["name"], "progress": progress_ms}))
 
 def handleVolume(*args):
+    """
+    Takes in volume as a float value in args.
+
+    Modifies computer's master volume based on the volume value.
+    NOTE: this only works on Mac. Windows and Mac have different Python libraries to control master volume
+    unfortunately.
+    """
     volume_level = args[0]
     if volume_level.isdigit():
         pot_value = int(volume_level)
@@ -227,7 +288,7 @@ def handleVolume(*args):
 
 # ---- TEST CODE -----
 
-tester = tests.UnitTests(refreshToken)
+tester = arduino_tests.UnitTests(refreshToken)
 
 # --- END TEST -------
 
@@ -237,10 +298,16 @@ messageResponses = {
     "skip": handleSkip,
     "getSongInfo": handleGetSongInfo,
     "volume": handleVolume,
-    "test": tester.runAll
+    "test": (lambda: tester.runAll(writeToArduino))
 }
 
 def handleArduinoMessage(aMessage):
+    """
+    Handler for responses from Arduino
+
+    Takes a message and tokenizes it, running the corresponding handler if it exists
+    Also test output here to handle communication testing
+    """
     log("ARDUINO", aMessage)
     # --- Testing ---
     if (aMessage.startsWith("PONG")):
