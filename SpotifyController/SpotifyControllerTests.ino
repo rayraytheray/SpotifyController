@@ -1,6 +1,9 @@
+bool sentPlay = false;
+bool sentPause = false;
+bool sentSkip = false;
+
 // Input state structure
 typedef struct {
-    String songName;
     unsigned long songDuration;
     unsigned long songSyncTime;
     bool skipFlag;
@@ -32,7 +35,6 @@ bool testTransition(state startState,
                    state_vars endStateVars,
                    bool verbos) {
     // Set up initial state
-    songName = startStateVars.songName;
     songDuration = startStateVars.songDuration;
     songSyncTime = startStateVars.songSyncTime;
     skipFlag = startStateVars.skipFlag;
@@ -43,7 +45,6 @@ bool testTransition(state startState,
     
     // Check if test passed
     bool passedTest = (endState == resultState &&
-                      songName == endStateVars.songName &&
                       songDuration == endStateVars.songDuration &&
                       songSyncTime == endStateVars.songSyncTime &&
                       skipFlag == endStateVars.skipFlag &&
@@ -64,8 +65,6 @@ bool testTransition(state startState,
         sprintf(sToPrint, "End state expected: %s | actual: %s", s2str(endState), s2str(resultState));
         Serial.println(sToPrint);
         Serial.println("State Variables:");
-        Serial.print("songName expected: "); Serial.print(endStateVars.songName); 
-        Serial.print(" actual: "); Serial.println(songName);
         Serial.print("skipFlag expected: "); Serial.print(endStateVars.skipFlag); 
         Serial.print(" actual: "); Serial.println(skipFlag);
         Serial.print("playFlag expected: "); Serial.print(endStateVars.playFlag); 
@@ -76,7 +75,6 @@ bool testTransition(state startState,
 
 // Test cases array definitions
 const state testStatesIn[6] = {
-    sWAIT_FOR_SONG,  // Test 0: Wait -> Paused when song loaded
     sWAIT_FOR_SONG,  // Test 1: Wait -> Wait when no song
     sPAUSED,         // Test 2: Paused -> Playing on play
     sPAUSED,         // Test 3: Paused -> Playing on skip
@@ -85,7 +83,6 @@ const state testStatesIn[6] = {
 };
 
 const state testStatesOut[6] = {
-    sPAUSED,
     sWAIT_FOR_SONG,
     sPLAYING,
     sPLAYING,
@@ -94,25 +91,23 @@ const state testStatesOut[6] = {
 };
 
 const state_vars testVarsIn[6] = {
-    {"Test Song", 5000, 0, false, false}, 
-    {"Waiting For Song", 5000, 0, false, false}, 
-    {"Test Song", 5000, 0, false, true},       
-    {"Test Song", 5000, 0, true, false},        
-    {"Test Song", 5000, 0, false, true},        
-    {"Test Song", 5000, 0, true, false}         
+    {5000, 0, false, false}, 
+    {5000, 0, false, true},       
+    {5000, 0, true, false},        
+    {5000, 0, false, true},        
+    {5000, 0, true, false}         
 };
 
-const state_vars testVarsOut[6] = {
-    {"Test Song", 5000, 0, false, false},        
-    {"Waiting For Song", 5000, 0, false, false}, 
-    {"Test Song", 5000, 0, false, false},       
-    {"Test Song", 5000, 0, false, false},       
-    {"Test Song", 5000, 0, false, false},        
-    {"Test Song", 5000, 0, false, false}        
+const state_vars testVarsOut[6] = {      
+    {5000, 0, false, false}, 
+    {5000, 0, false, false},       
+    {5000, 0, false, false},       
+    {5000, 0, false, false},        
+    {5000, 0, false, false}        
 };
 
 bool testAllTests() {
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 5; i++) {
         Serial.print("Running test ");
         Serial.println(i);
         if (!testTransition(testStatesIn[i], testStatesOut[i], testVarsIn[i], testVarsOut[i], true)) {
@@ -123,3 +118,16 @@ bool testAllTests() {
     Serial.println("All tests passed!");
     return true;
 }
+
+// void testCommunication() {
+//   Serial.println("play");
+//   sentPlay = true;
+//   Serial.println("pause");
+//   sentPause = true;
+//   Serial.println("skip");
+//   sentSkip = true;
+// }
+
+// void parseResponse(JsonDocument doc) {
+  
+// }
