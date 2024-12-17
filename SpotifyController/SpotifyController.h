@@ -1,3 +1,4 @@
+#define UNIT_TEST 
 #ifndef SPOTIFY_CONTROLLER_H
 #define SPOTIFY_CONTROLLER_H
 
