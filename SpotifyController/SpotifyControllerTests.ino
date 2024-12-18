@@ -118,16 +118,3 @@ bool testAllTests() {
     Serial.println("All tests passed!");
     return true;
 }
-
-// void testCommunication() {
-//   Serial.println("play");
-//   sentPlay = true;
-//   Serial.println("pause");
-//   sentPause = true;
-//   Serial.println("skip");
-//   sentSkip = true;
-// }
-
-// void parseResponse(JsonDocument doc) {
-  
-// }

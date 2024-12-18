@@ -33,6 +33,8 @@ void setup() {
   #ifdef TEST
     Serial.println("STARTING TESTS");
     testAllTests();
+    testLCD();
+    testTimer();
     Serial.println("test");
   #else
     // Set up LCD and buttons
