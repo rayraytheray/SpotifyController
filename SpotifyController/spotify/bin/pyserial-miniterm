@@ -1,4 +1,4 @@
-#!/Users/annieye/Desktop/cs1600/SpotifyController/SpotifyController/spotify/bin/python3
+#!/Users/jowet/Desktop/cs1600/SpotifyController/SpotifyController/spotify/bin/python3.13
 # -*- coding: utf-8 -*-
 import re
 import sys

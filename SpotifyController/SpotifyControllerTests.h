@@ -3,7 +3,6 @@
 
 #include "SpotifyController.h"
 
-// Input state structure
 typedef struct {
     int lastButton;
     String currentSong;
@@ -12,7 +11,6 @@ typedef struct {
     bool playButtonPressed;
 } state_inputs;
 
-// Variables state structure
 typedef struct {
     String songName;
     unsigned long songDuration;
@@ -21,7 +19,6 @@ typedef struct {
     bool playFlag;
 } state_vars;
 
-// Function declarations
 char* s2str(state s);
 bool testTransition(state startState, 
                    state endState,
@@ -30,6 +27,5 @@ bool testTransition(state startState,
                    state_vars endStateVars,
                    bool verbos);
 bool testAllTests();
-// state updateFSM(state currentState, int button);
 
 #endif // SPOTIFY_CONTROLLER_TESTS_H
