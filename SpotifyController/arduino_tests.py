@@ -1,6 +1,6 @@
 import requests 
 
-SPOTIFY_HOST = "api.spotify.com"
+SPOTIFY_HOST = "https://api.spotify.com"
 SPOTIFY_ACCOUNTS_HOST = "https://accounts.spotify.com"
 
 SPOTIFY_PLAYER_ENDPOINT = SPOTIFY_HOST + "/v1/me/player"
@@ -35,10 +35,23 @@ class UnitTests:
         assert "item" in r.json()
         assert "progress_ms" in r.json() 
         assert "duration_ms" in r.json()["item"]
-        assert "name" in r.json()["name"]
+        assert "name" in r.json()["item"]
 
-    def runAll(self):
+    def testComm1(self, write):
+        write(str({"PING": "SENDER"}))
+        self.testing_comm = True
+    
+    def testComm2(self, message):
+        assert self.testing_comm 
+        assert message == "SENDER: PONG"
+
+    def runAll(self, write):
+        r = requests.put(SPOTIFY_PAUSE_ENDPOINT, headers=self.headers)
+        
         self.testPlay()
         self.testPause()
         self.testSkip()
         self.testGetCurrentSong()
+        self.testComm1(write)
+        
+        print("All tests passed")

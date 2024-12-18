@@ -43,6 +43,7 @@ import serial.tools.list_ports
 import requests 
 # import osascript
 import arduino_secrets
+import arduino_tests
 
 baudRate = 115200
 arduinoQueue = queue.Queue()
@@ -52,7 +53,7 @@ refreshToken = "BQDPfzkqYvmnwUZYBnFxO5MrMWBtU_eXY0OnnRsbi0myHaLI_OOleRdzqYBF2DJX
 tokenType = None
 ttl = None
 
-SPOTIFY_HOST = "api.spotify.com"
+SPOTIFY_HOST = "https://api.spotify.com"
 SPOTIFY_ACCOUNTS_HOST = "https://accounts.spotify.com"
 
 SPOTIFY_PLAYER_ENDPOINT = SPOTIFY_HOST + "/v1/me/player"
@@ -64,6 +65,8 @@ SPOTIFY_NEXT_TRACK_ENDPOINT = SPOTIFY_HOST + "/v1/me/player/next"
 SPOTIFY_CURRENT_SONG_ENDPOINT = SPOTIFY_HOST + "/v1/me/player/currently-playing"
 
 SPOTIFY_TOKEN_ENDPOINT = SPOTIFY_ACCOUNTS_HOST + "/api/token"
+
+print(SPOTIFY_PLAY_ENDPOINT)
 
 class NoValidPortError(Exception):
     """Exception raised when no valid Arduino ports are found."""
@@ -132,7 +135,7 @@ def handleResponse(response):
     else:
         log_string += f"{response.reason}"
     log("LOCAL", log_string)
-    writeToArduino(str({"status":r.status_code, "message": log_string}))
+    writeToArduino(str({"status":response.status_code, "message": log_string}))
 
 # def getRefreshToken():
 #     payload = f"grant_type=client_credentials&client_id={arduino_secrets.CLIENT_ID}&client_secret={arduino_secrets.CLIENT_SECRET}"
@@ -224,16 +227,27 @@ def handleVolume(*args):
     else:
         log("LOCAL", f"Ignored non-numeric data '{volume_level}'")
 
+# ---- TEST CODE -----
+
+tester = arduino_tests.UnitTests(refreshToken)
+
+# --- END TEST -------
+
 messageResponses = {
     "play": handlePlay,
     "pause": handlePause,
     "skip": handleSkip,
     "getSongInfo": handleGetSongInfo,
-    "volume": handleVolume
+    "volume": handleVolume,
+    "test": (lambda: tester.runAll(writeToArduino))
 }
 
 def handleArduinoMessage(aMessage):
     log("ARDUINO", aMessage)
+    # --- Testing ---
+    if (aMessage.startswith("PONG")):
+        tester.testComm2(aMessage)
+    # --- End Test --
 
     tokens = aMessage.strip().split()
     if (len(tokens) > 0):
@@ -256,9 +270,9 @@ while True:
             break
 log("LOCAL", "Arduino Ready")
 
-handleGetSongInfo()
-restartSong()
-handlePause()
+# handleGetSongInfo()
+# restartSong()
+# handlePause()
 
 # --- Now you handle the commands received either from Arduino or stdin
 while True:
