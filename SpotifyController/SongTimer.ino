@@ -1,9 +1,15 @@
 #include "SongTimer.h"
 
+/*
+* Stopwatch style class to keep track of the progress of a song
+*/
 SongTimer::SongTimer() {
   reset();
 }
 
+/*
+* Starts the stopwatch
+*/
 void SongTimer::start(unsigned long syncTime) {
   if (!isRunning) {
     startTime = millis();
@@ -14,6 +20,9 @@ void SongTimer::start(unsigned long syncTime) {
   }
 }
 
+/*
+* Stops the stopwatch
+*/
 void SongTimer::stop() {
   if (isRunning) {
     pausedTime = millis();
@@ -22,6 +31,9 @@ void SongTimer::stop() {
   }
 }
 
+/*
+* Resets the stopwatch back to 0
+*/
 void SongTimer::reset() {
   startTime = 0;
   totalTime = 0;
@@ -29,14 +41,13 @@ void SongTimer::reset() {
   isRunning = false;
 }
 
-// Get elapsed time in milliseconds
+
+/*
+* Gets the stopwatch time in ms
+*/
 unsigned long SongTimer::getElapsedTime() {
   if (isRunning) {
     return totalTime + (millis() - startTime);
   }
   return totalTime;
-}
-
-bool SongTimer::running() {
-  return isRunning;
 }

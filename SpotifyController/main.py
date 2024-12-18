@@ -21,19 +21,6 @@
 # CODE BASED OFF OF THE FOLLOWING POST:
 # https://forum.arduino.cc/t/two-ways-communication-between-python3-and-arduino/1219738
 
-#define SPOTIFY_HOST "api.spotify.com"
-#define SPOTIFY_ACCOUNTS_HOST "accounts.spotify.com"
-
-#define SPOTIFY_PLAYER_ENDPOINT "/v1/me/player"
-#define SPOTIFY_DEVICES_ENDPOINT "/v1/me/player/devices"
-
-#define SPOTIFY_PLAY_ENDPOINT "/v1/me/player/play"
-#define SPOTIFY_PAUSE_ENDPOINT "/v1/me/player/pause"
-#define SPOTIFY_NEXT_TRACK_ENDPOINT "/v1/me/player/next"
-
-#define SPOTIFY_TOKEN_ENDPOINT "/api/token"
-
-
 import threading, queue, serial
 import datetime 
 import subprocess
@@ -49,7 +36,7 @@ baudRate = 115200
 arduinoQueue = queue.Queue()
 localQueue = queue.Queue()
 
-refreshToken = "BQDPfzkqYvmnwUZYBnFxO5MrMWBtU_eXY0OnnRsbi0myHaLI_OOleRdzqYBF2DJXoGBkiUhhZ9PHFIuoJdTBbEmb8W-FBcEL3oORGqiksDABWxbF-PW5Us-SHnURnpdfqq59xd30oNgEBNEU4TSVZbrxxWijkYthVZZ9r_bkymIH69vg1MBCeXClJtpskjTy"
+refreshToken = "BQCDLHBOAKpjx2kZrq29SAlvnxPuRpHrmnyMrDvKU7M2AijONm5ENLc7aolmaWAtfyYeSsSYeV8uOYDZwCNMetEe2PiknbPNTdxna4MKwftLoZ67QweR6XKigm8XidwwSZ07eAF7kPLWV3AopiP1iTZKF3bNEPVFiSeIL1IoaRejtqhTCQw2dr1BYqxnSFka"
 tokenType = None
 ttl = None
 

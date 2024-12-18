@@ -1,10 +1,6 @@
 #include <LiquidCrystal.h>
 #include "SpotifyUtils.h"
 
-// // Pin definitions
-const int PLAY_PAUSE_PIN = 8;
-const int SKIP_PIN = 9;
-
 // Button states and debouncing variables
 int playPauseState = LOW;
 int skipState = LOW;
@@ -19,10 +15,10 @@ LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 long timeBetweenUpdate = 1000;
 int barsFilled = 0;
 
+/*
+* Sets up the LCD and displays empty progress bar
+*/
 void setupUtils() {
-  pinMode(PLAY_PAUSE_PIN, INPUT);
-  pinMode(SKIP_PIN, INPUT);
-
   // Setup LCD
   lcd.begin(16,2);
   lcd.clear();
@@ -34,6 +30,10 @@ void setupUtils() {
   displayProgressBar();
 }
 
+/*
+* Displays songName on the second row of the LCD, 
+* replacing what was there before. 
+*/
 void displaySongName(String songName) {
   //truncate song name to 16 characters 
   songName = songName.substring(0, 16);
@@ -46,6 +46,9 @@ void displaySongName(String songName) {
   lcd.setCursor(0, 0); //reset cursor to first row for progress bar
 }
 
+/*
+* Displays an empty progress bar on the first row of the LCD
+*/
 void displayProgressBar() {
   // Write empty progress bar 
   lcd.setCursor(0, 0);
@@ -55,6 +58,10 @@ void displayProgressBar() {
   barsFilled = 0;
 }
 
+/*
+* Draws the appropriate number of bars based on 
+* progress through the song
+*/
 void updateProgressBar(long mils) {
   //Add block to progress bar every timeBetweenUpdate
   if((mils / timeBetweenUpdate > barsFilled) && (barsFilled < 16)) {
@@ -63,6 +70,10 @@ void updateProgressBar(long mils) {
   }
 }
 
+/*
+* Set how long the song needs to progress before 
+* each bar is drawn 
+*/
 void setTimeBetweenUpdate(long mils) {
   timeBetweenUpdate = mils;
 }

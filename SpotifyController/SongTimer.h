@@ -17,7 +17,6 @@ class SongTimer {
     void stop();
     void reset();
     unsigned long getElapsedTime();
-    bool running();
 };
 
 #endif

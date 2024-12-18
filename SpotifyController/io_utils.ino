@@ -1,5 +1,8 @@
 #include "io_utils.h"
 
+/*
+* Write information we received through Serial to a buffer
+*/
 void writeToBuf() {
   while(Serial.available() && bytesRead < sizeof(serialBuffer) - 1) {
     int c = Serial.read();
@@ -15,7 +18,9 @@ void writeToBuf() {
   }
 }
 
-// Only ever called if writtenTo is true
+/*
+* Deserialize json and return as doc. Only called if writtenTo is true. 
+*/
 JsonDocument readResponse() {
   JsonDocument doc;
   DeserializationError error = deserializeJson(doc, serialBuffer);

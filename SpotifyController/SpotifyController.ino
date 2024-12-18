@@ -148,6 +148,9 @@ state updateFSM(state curState) {
   return nextState;
 }
 
+/*
+* ISR for playPin interrupt, sets flag
+*/
 void handlePlay() {
   unsigned long currentTime = millis();
   if (currentTime - lastPlayPress > DEBOUNCE_TIME) {
@@ -156,6 +159,9 @@ void handlePlay() {
   }
 }
 
+/*
+* ISR for skipPin interrupt, sets flag 
+*/
 void handleSkip() {
   unsigned long currentTime = millis();
   if (currentTime - lastSkipPress > DEBOUNCE_TIME) {
@@ -164,6 +170,9 @@ void handleSkip() {
   }
 }
 
+/*
+* Parses any info we receive from the host computer, sets global variables
+*/
 void parseResponse(JsonDocument doc) {
   if(doc.isNull()) {
     Serial.println("Doc is null in parseResponse");
